@@ -30,6 +30,14 @@ enum FoodType {
   OTHER
 }
 
+enum OrderStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  HALTED
+  CANCELED
+}
+
 model MenuItem {
   id          String     @id @default(cuid())
   name        String
@@ -42,5 +50,37 @@ model MenuItem {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
+  orderItems  OrderItem[]
+
   @@map("menu_items")
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  tableNumber Int
+  serverName  String
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  items       OrderItem[]
+
+  @@index([status])
+  @@index([tableNumber])
+  @@map("orders")
+}
+
+model OrderItem {
+  id                  String   @id @default(cuid())
+  orderId             String
+  menuItemId          String
+  quantity            Int      @default(1)
+  specialInstructions String?
+  createdAt           DateTime @default(now())
+
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id])
+
+  @@index([orderId])
+  @@map("order_items")
 }

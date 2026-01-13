@@ -7,3 +7,6 @@ export interface HealthResponse {
 
 // Re-export menu types
 export * from './menu.js';
+
+// Re-export order types
+export * from './order.js';
