@@ -1,6 +1,6 @@
 import { createApp } from './app.js';
 import { config } from './config/index.js';
-import { connectDatabase, disconnectDatabase } from './lib/prisma.js';
+import { prisma, connectDatabase, disconnectDatabase } from './lib/prisma.js';
 
 async function bootstrap() {
   // Validate database connection
@@ -15,7 +15,7 @@ async function bootstrap() {
   
   console.log('✅ Database connected');
 
-  const app = createApp();
+  const app = createApp(prisma);
 
   const server = app.listen(config.port, () => {
     console.log(`🚀 Server running on http://localhost:${config.port}`);

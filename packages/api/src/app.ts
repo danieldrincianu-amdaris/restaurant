@@ -1,10 +1,11 @@
 import express, { Express } from 'express';
 import cors from 'cors';
+import { PrismaClient } from '@prisma/client';
 import { config } from './config/index.js';
 import { createRoutes } from './routes/index.js';
 import { errorHandler } from './middleware/error-handler.js';
 
-export function createApp(): Express {
+export function createApp(prisma: PrismaClient): Express {
   const app = express();
 
   // Middleware
@@ -12,7 +13,7 @@ export function createApp(): Express {
   app.use(express.json());
 
   // Routes
-  app.use('/api', createRoutes());
+  app.use('/api', createRoutes(prisma));
 
   // Error handling (must be last)
   app.use(errorHandler);

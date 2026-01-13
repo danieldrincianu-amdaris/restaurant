@@ -50,6 +50,9 @@ importers:
       prisma:
         specifier: ^7.2.0
         version: 7.2.0(@types/react@19.2.8)(react-dom@19.2.3)(react@19.2.3)(typescript@5.9.3)
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
     devDependencies:
       '@types/cors':
         specifier: ^2.8.17
@@ -67,7 +70,7 @@ importers:
         specifier: ^8.16.0
         version: 8.16.0
       '@types/supertest':
-        specifier: ^6.0.2
+        specifier: ^6.0.3
         version: 6.0.3
       supertest:
         specifier: ^6.3.4
@@ -3867,4 +3870,8 @@ packages:
     resolution: {integrity: sha512-H33jtSKf8Ijtb5BW6wua3G5DhnFjbFML36eFu+VdOoVY4HD9e7ggjqdM6639B+L87rjnR6Y+XeRzBXZdy52B/g==}
     dependencies:
       grammex: 3.1.12
+    dev: false
+
+  /zod@4.3.5:
+    resolution: {integrity: sha512-k7Nwx6vuWx1IJ9Bjuf4Zt1PEllcwe7cls3VNzm4CQ1/hgtFUK2bRNG3rvnpPUhFjmqJKAKtjV576KnUkHocg/g==}
     dev: false

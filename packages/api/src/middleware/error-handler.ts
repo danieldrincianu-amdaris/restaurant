@@ -1,26 +1,38 @@
 import { Request, Response, NextFunction } from 'express';
-
-export interface AppError extends Error {
-  statusCode?: number;
-  code?: string;
-}
+import { ZodError } from 'zod';
+import { AppError } from '../utils/errors.js';
 
 export function errorHandler(
-  error: AppError,
-  _req: Request,
+  error: Error,
+  req: Request,
   res: Response,
-  _next: NextFunction
+  next: NextFunction
 ) {
   console.error('Error:', error);
 
-  const statusCode = error.statusCode || 500;
-  const code = error.code || 'INTERNAL_ERROR';
-  const message = error.message || 'An unexpected error occurred';
+  if (error instanceof AppError) {
+    return res.status(error.statusCode).json({
+      error: {
+        code: error.code,
+        message: error.message,
+      },
+    });
+  }
 
-  res.status(statusCode).json({
+  if (error instanceof ZodError) {
+    return res.status(400).json({
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: 'Invalid request data',
+        details: error.issues,
+      },
+    });
+  }
+
+  res.status(500).json({
     error: {
-      code,
-      message,
+      code: 'INTERNAL_ERROR',
+      message: 'An unexpected error occurred',
     },
   });
 }
