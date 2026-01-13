@@ -2,11 +2,15 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "noPropertyAccessFromIndexSignature": false,
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "types": ["vite/client"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

@@ -6,6 +6,13 @@
 
 This document defines the complete technical architecture for RestaurantFlow, a self-hosted restaurant order and menu management system. It serves as the definitive guide for AI-driven development, covering backend systems, frontend implementation, real-time communication, and deployment.
 
+### Related Documents
+
+| Document | Purpose |
+|----------|----------|
+| [PRD](prd.md) | Product requirements and user stories |
+| [Front-End Spec](front-end-spec.md) | UI/UX specification with wireframes, user flows, component library, and design system |
+
 ### Change Log
 
 | Date | Version | Description | Author |
@@ -1737,8 +1744,14 @@ pnpm dev
 
 ### References
 
+**Project Documents:**
+- [Front-End Spec](front-end-spec.md) — UI/UX specification with wireframes, design system, and accessibility requirements
+- [PRD](prd.md) — Product requirements and user stories
+
+**External Documentation:**
 - [React Documentation](https://react.dev)
 - [Prisma Documentation](https://www.prisma.io/docs)
 - [Socket.io Documentation](https://socket.io/docs/v4)
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs)
 - [Zustand Documentation](https://docs.pmnd.rs/zustand)
+- [Lucide Icons](https://lucide.dev) — Icon library specified in front-end-spec
