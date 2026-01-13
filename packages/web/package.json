@@ -5,9 +5,9 @@
   "description": "RestaurantFlow web frontend",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
+    "dev": "echo Web frontend not yet implemented",
+    "build": "echo Web frontend not yet implemented",
+    "preview": "echo Web frontend not yet implemented",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
