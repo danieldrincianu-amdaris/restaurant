@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import { MulterError } from 'multer';
 import { AppError } from '../utils/errors.js';
 
 export function errorHandler(
@@ -27,6 +28,17 @@ export function errorHandler(
         details: error.issues,
       },
     });
+  }
+
+  if (error instanceof MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({
+        error: {
+          code: 'FILE_TOO_LARGE',
+          message: 'File size exceeds maximum allowed (5MB)',
+        },
+      });
+    }
   }
 
   res.status(500).json({

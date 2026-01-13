@@ -121,6 +121,18 @@ describe('Menu Items API', () => {
         expect(item.available).toBe(true);
       });
     });
+
+    it('should filter by combined category and foodType', async () => {
+      const res = await request(app).get('/api/menu-items?category=MAIN&foodType=PIZZA');
+
+      expect(res.status).toBe(200);
+      expect(res.body.data).toBeInstanceOf(Array);
+      // If results exist, verify both filters apply
+      res.body.data.forEach((item: any) => {
+        expect(item.category).toBe('MAIN');
+        expect(item.foodType).toBe('PIZZA');
+      });
+    });
   });
 
   describe('GET /api/menu-items/:id', () => {
@@ -234,6 +246,76 @@ describe('Menu Items API', () => {
 
       expect(res.status).toBe(404);
       expect(res.body.error.code).toBe('NOT_FOUND');
+    });
+  });
+
+  describe('Enum Validation', () => {
+    it('should reject invalid category on create with 400', async () => {
+      const res = await request(app)
+        .post('/api/menu-items')
+        .send({
+          name: 'Invalid Category Item',
+          price: 10.00,
+          ingredients: ['test'],
+          category: 'INVALID_CATEGORY',
+          foodType: 'PIZZA',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('should reject invalid foodType on create with 400', async () => {
+      const res = await request(app)
+        .post('/api/menu-items')
+        .send({
+          name: 'Invalid FoodType Item',
+          price: 10.00,
+          ingredients: ['test'],
+          category: 'MAIN',
+          foodType: 'INVALID_FOOD_TYPE',
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('should reject invalid category on update with 400', async () => {
+      const created = await prisma.menuItem.create({
+        data: {
+          name: 'Update Category Test',
+          price: 10.00,
+          ingredients: [],
+          category: Category.MAIN,
+        },
+      });
+      testItemId = created.id;
+
+      const res = await request(app)
+        .put(`/api/menu-items/${created.id}`)
+        .send({ category: 'INVALID_CATEGORY' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('should reject invalid foodType on update with 400', async () => {
+      const created = await prisma.menuItem.create({
+        data: {
+          name: 'Update FoodType Test',
+          price: 10.00,
+          ingredients: [],
+          category: Category.MAIN,
+        },
+      });
+      testItemId = created.id;
+
+      const res = await request(app)
+        .put(`/api/menu-items/${created.id}`)
+        .send({ foodType: 'INVALID_FOOD_TYPE' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
   });
 });

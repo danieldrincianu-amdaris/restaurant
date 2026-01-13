@@ -11,6 +11,7 @@ export function createApp(prisma: PrismaClient): Express {
   // Middleware
   app.use(cors({ origin: config.corsOrigin }));
   app.use(express.json());
+  app.use('/uploads', express.static('uploads'));
 
   // Routes
   app.use('/api', createRoutes(prisma));
