@@ -12,6 +12,7 @@ A self-hosted restaurant order and menu management system built with TypeScript.
 
 - **Node.js** 20.0.0 or higher
 - **pnpm** 8.0.0 or higher
+- **Docker** (for PostgreSQL database)
 
 ## Installation
 
@@ -25,6 +26,15 @@ pnpm install
 
 # Copy environment file
 cp .env.example .env
+
+# Start PostgreSQL database
+docker compose -f docker-compose.dev.yml up -d
+
+# Run database migrations
+pnpm --filter @restaurant/api prisma:migrate
+
+# Seed the database (optional)
+pnpm --filter @restaurant/api prisma:seed
 ```
 
 ## Development
@@ -70,6 +80,30 @@ restaurant/
 | `PORT` | `3001` | API server port |
 | `NODE_ENV` | `development` | Environment mode |
 | `CORS_ORIGIN` | `http://localhost:5173` | Allowed CORS origin |
+| `DATABASE_URL` | `postgresql://restaurant:restaurant_dev@localhost:5432/restaurant` | PostgreSQL connection string |
+
+## Database
+
+### Start Database
+
+```bash
+docker compose -f docker-compose.dev.yml up -d
+```
+
+### Stop Database
+
+```bash
+docker compose -f docker-compose.dev.yml down
+```
+
+### Database Commands
+
+| Command | Description |
+|---------|-------------|
+| `pnpm --filter @restaurant/api prisma:migrate` | Run migrations |
+| `pnpm --filter @restaurant/api prisma:seed` | Seed sample data |
+| `pnpm --filter @restaurant/api prisma:studio` | Open Prisma Studio |
+| `pnpm --filter @restaurant/api prisma:generate` | Generate Prisma client |
 
 ## API Endpoints
 
