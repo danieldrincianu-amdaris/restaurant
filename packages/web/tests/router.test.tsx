@@ -1,10 +1,37 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import { ToastProvider } from '../src/contexts/ToastContext';
 import MainLayout from '../src/components/layout/MainLayout';
 import HomePage from '../src/pages/HomePage';
 import AdminDashboard from '../src/pages/admin/AdminDashboard';
 import MenuManagement from '../src/pages/admin/MenuManagement';
+
+// Mock the hooks for MenuManagement
+vi.mock('../src/hooks/useMenuItems', () => ({
+  useMenuItems: () => ({
+    items: [],
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+}));
+
+vi.mock('../src/hooks/useUpdateAvailability', () => ({
+  useUpdateAvailability: () => ({
+    updateAvailability: vi.fn(),
+    isUpdating: false,
+    error: null,
+  }),
+}));
+
+vi.mock('../src/hooks/useDeleteMenuItem', () => ({
+  useDeleteMenuItem: () => ({
+    deleteMenuItem: vi.fn(),
+    isDeleting: false,
+    error: null,
+  }),
+}));
 
 describe('Router', () => {
   it('renders HomePage at root route', () => {
@@ -50,7 +77,7 @@ describe('Router', () => {
           path: '/',
           element: <MainLayout />,
           children: [
-            { path: 'admin/menu', element: <MenuManagement /> },
+            { path: 'admin/menu', element: <ToastProvider><MenuManagement /></ToastProvider> },
           ],
         },
       ],

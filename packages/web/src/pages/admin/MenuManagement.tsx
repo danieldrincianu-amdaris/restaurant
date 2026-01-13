@@ -2,16 +2,22 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMenuItems } from '../../hooks/useMenuItems';
 import { useUpdateAvailability } from '../../hooks/useUpdateAvailability';
+import { useDeleteMenuItem } from '../../hooks/useDeleteMenuItem';
+import { useToast } from '../../contexts/ToastContext';
 import MenuItemTable from '../../components/menu/MenuItemTable';
 import MenuFilters from '../../components/menu/MenuFilters';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import EmptyState from '../../components/menu/EmptyState';
 import ErrorState from '../../components/menu/ErrorState';
+import { ConfirmationModal } from '../../components/ui/ConfirmationModal';
 
 function MenuManagement() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedFoodType, setSelectedFoodType] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; name: string } | null>(null);
 
   const { items, isLoading, error, refetch } = useMenuItems(
     selectedCategory || undefined,
@@ -20,6 +26,7 @@ function MenuManagement() {
 
   const [itemsState, setItemsState] = useState(items);
   const { updateAvailability } = useUpdateAvailability(itemsState, setItemsState);
+  const { deleteMenuItem, isDeleting } = useDeleteMenuItem();
 
   // Sync items from hook to local state
   useEffect(() => {
@@ -38,9 +45,29 @@ function MenuManagement() {
     navigate(`/admin/menu/${id}/edit`);
   };
 
-  const handleDelete = (id: string) => {
-    // Delete confirmation will be implemented in Story 1.9
-    alert(`Delete functionality coming in Story 1.9. Item ID: ${id}`);
+  const handleDelete = (id: string, name: string) => {
+    setItemToDelete({ id, name });
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      await deleteMenuItem(itemToDelete.id);
+      showToast(`${itemToDelete.name} deleted successfully`, 'success');
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+      refetch();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to delete item', 'error');
+      setShowDeleteModal(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setItemToDelete(null);
   };
 
   return (
@@ -76,6 +103,17 @@ function MenuManagement() {
           onDelete={handleDelete}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        title="Delete Menu Item"
+        message={`Are you sure you want to delete '${itemToDelete?.name}'? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

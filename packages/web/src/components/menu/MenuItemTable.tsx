@@ -4,7 +4,7 @@ interface MenuItemTableProps {
   items: MenuItem[];
   onToggleAvailability: (id: string, available: boolean) => void;
   onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string, name: string) => void;
 }
 
 function MenuItemTable({ items, onToggleAvailability, onEdit, onDelete }: MenuItemTableProps) {
@@ -92,7 +92,7 @@ function MenuItemTable({ items, onToggleAvailability, onEdit, onDelete }: MenuIt
                     ✏️ Edit
                   </button>
                   <button
-                    onClick={() => onDelete(item.id)}
+                    onClick={() => onDelete(item.id, item.name)}
                     className="text-red-600 hover:text-red-800 text-sm font-medium"
                     aria-label={`Delete ${item.name}`}
                   >
