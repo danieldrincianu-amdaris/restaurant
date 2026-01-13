@@ -58,6 +58,6 @@ describe('Router', () => {
     );
 
     render(<RouterProvider router={router as any} />);
-    expect(screen.getByText(/Manage your restaurant menu items/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Menu Management', level: 1 })).toBeInTheDocument();
   });
 });
