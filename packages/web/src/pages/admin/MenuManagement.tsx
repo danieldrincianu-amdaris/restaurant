@@ -31,7 +31,6 @@ function MenuManagement() {
       await updateAvailability(id, available);
     } catch (err) {
       // Error already handled in hook with rollback
-      console.error('Failed to update availability:', err);
     }
   };
 
