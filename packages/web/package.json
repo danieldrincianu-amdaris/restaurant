@@ -1,0 +1,19 @@
+{
+  "name": "@restaurant/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RestaurantFlow web frontend",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@restaurant/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
