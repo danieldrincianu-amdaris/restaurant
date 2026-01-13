@@ -5,6 +5,7 @@ import { createMenuItemRoutes } from './menu-items.js';
 import { createUploadRoutes } from './upload.js';
 import { createCategoriesRoutes } from './categories.js';
 import { createFoodTypesRoutes } from './food-types.js';
+import { createOrderRoutes } from './orders.js';
 
 export function createRoutes(prisma: PrismaClient): Router {
   const router = Router();
@@ -14,6 +15,7 @@ export function createRoutes(prisma: PrismaClient): Router {
   router.use('/upload', createUploadRoutes());
   router.use('/categories', createCategoriesRoutes());
   router.use('/food-types', createFoodTypesRoutes());
+  router.use('/orders', createOrderRoutes(prisma));
 
   return router;
 }

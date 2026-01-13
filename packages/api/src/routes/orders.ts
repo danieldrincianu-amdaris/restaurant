@@ -1,0 +1,90 @@
+import { Router, Request, Response, NextFunction } from 'express';
+import { PrismaClient } from '@prisma/client';
+import { OrderService } from '../services/order.service.js';
+import { createOrderSchema, updateOrderSchema } from '../schemas/order.schema.js';
+import { notFound } from '../utils/errors.js';
+import { sendSuccess } from '../utils/response.js';
+
+export function createOrderRoutes(prisma: PrismaClient): Router {
+  const router = Router();
+  const orderService = new OrderService(prisma);
+
+  // GET /api/orders - List all orders with optional filters
+  router.get('/', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { status, tableNumber } = req.query;
+      
+      const filters: { status?: string; tableNumber?: number } = {};
+      if (status && typeof status === 'string') {
+        filters.status = status;
+      }
+      if (tableNumber && typeof tableNumber === 'string') {
+        filters.tableNumber = parseInt(tableNumber, 10);
+      }
+      
+      const orders = await orderService.getAllOrders(filters);
+      return sendSuccess(res, orders);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // POST /api/orders - Create a new order
+  router.post('/', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const validated = createOrderSchema.parse(req.body);
+      const order = await orderService.createOrder(validated);
+      return sendSuccess(res, order, 201);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // GET /api/orders/:id - Get a single order
+  router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const order = await orderService.getOrderById(req.params['id']!);
+      
+      if (!order) {
+        throw notFound('Order');
+      }
+      
+      return sendSuccess(res, order);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // PUT /api/orders/:id - Update an order
+  router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const validated = updateOrderSchema.parse(req.body);
+      const order = await orderService.updateOrder(req.params['id']!, validated);
+      
+      if (!order) {
+        throw notFound('Order');
+      }
+      
+      return sendSuccess(res, order);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // DELETE /api/orders/:id - Delete an order
+  router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const order = await orderService.deleteOrder(req.params['id']!);
+      
+      if (!order) {
+        throw notFound('Order');
+      }
+      
+      return sendSuccess(res, order);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  return router;
+}
