@@ -4,6 +4,7 @@ import HomePage from '../pages/HomePage';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import MenuManagement from '../pages/admin/MenuManagement';
 import MenuItemForm from '../pages/admin/MenuItemForm';
+import { NewOrderPage, EditOrderPage, OrdersPage } from '../pages/staff';
 
 const routes: RouteObject[] = [
   {
@@ -15,6 +16,9 @@ const routes: RouteObject[] = [
       { path: 'admin/menu', element: <MenuManagement /> },
       { path: 'admin/menu/new', element: <MenuItemForm /> },
       { path: 'admin/menu/:id/edit', element: <MenuItemForm /> },
+      { path: 'staff/orders', element: <OrdersPage /> },
+      { path: 'staff/orders/new', element: <NewOrderPage /> },
+      { path: 'staff/orders/:id/edit', element: <EditOrderPage /> },
     ],
   },
 ];

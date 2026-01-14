@@ -28,6 +28,12 @@ function MainLayout() {
               >
                 Menu Management
               </Link>
+              <Link 
+                to="/staff/orders/new" 
+                className="text-gray-700 hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Staff Orders
+              </Link>
             </nav>
           </div>
         </div>
