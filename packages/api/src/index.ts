@@ -1,3 +1,4 @@
+import { createServer } from 'http';
 import { createApp } from './app.js';
 import { config } from './config/index.js';
 import { prisma, connectDatabase, disconnectDatabase } from './lib/prisma.js';
@@ -15,17 +16,26 @@ async function bootstrap() {
   
   console.log('✅ Database connected');
 
-  const app = createApp(prisma);
+  // Create HTTP server first (required for Socket.io)
+  const httpServer = createServer();
+  
+  // Create Express app and Socket.io server
+  const { app, io } = createApp(prisma, httpServer);
+  
+  // Attach Express app to HTTP server
+  httpServer.on('request', app);
 
-  const server = app.listen(config.port, () => {
+  httpServer.listen(config.port, () => {
     console.log(`🚀 Server running on http://localhost:${config.port}`);
     console.log(`📋 Health check: http://localhost:${config.port}/api/health`);
+    console.log(`🔌 WebSocket server ready`);
   });
 
   // Graceful shutdown
   const shutdown = async () => {
     console.log('\n🛑 Shutting down...');
-    server.close();
+    io.close();
+    httpServer.close();
     await disconnectDatabase();
     console.log('👋 Goodbye!');
     process.exit(0);

@@ -10,3 +10,6 @@ export * from './menu.js';
 
 // Re-export order types
 export * from './order.js';
+
+// Re-export socket event types
+export * from './socket-events.js';

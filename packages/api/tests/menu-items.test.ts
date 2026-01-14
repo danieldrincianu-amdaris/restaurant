@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
+import { createServer } from 'http';
 import request from 'supertest';
 import { Express } from 'express';
 import { createApp } from '../src/app.js';
@@ -12,7 +13,9 @@ describe('Menu Items API', () => {
 
   beforeAll(async () => {
     await connectDatabase();
-    app = createApp(prisma);
+    const httpServer = createServer();
+    const result = createApp(prisma, httpServer);
+    app = result.app;
   });
 
   afterAll(async () => {

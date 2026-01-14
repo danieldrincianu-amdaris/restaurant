@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest';
+import { createServer } from 'http';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { prisma } from '../src/lib/prisma.js';
 
 describe('GET /api/health', () => {
-  const app = createApp(prisma);
+  const httpServer = createServer();
+  const { app } = createApp(prisma, httpServer);
 
   it('should return 200 status code', async () => {
     const response = await request(app).get('/api/health');
