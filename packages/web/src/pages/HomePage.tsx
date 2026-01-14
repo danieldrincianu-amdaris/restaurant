@@ -25,6 +25,12 @@ function HomePage() {
           📋 View Orders
         </Link>
         <Link 
+          to="/kitchen" 
+          className="px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 font-medium"
+        >
+          👨‍🍳 Kitchen Display
+        </Link>
+        <Link 
           to="/admin/menu" 
           className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium"
         >
