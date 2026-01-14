@@ -72,8 +72,10 @@ describe('NewOrderPage', () => {
     expect(screen.getByPlaceholderText(/search menu items/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /all/i })).toBeInTheDocument();
     
-    // Order panel elements
-    expect(screen.getByText('Order Summary')).toBeInTheDocument();
+    // Order builder elements
+    expect(screen.getByText('Order #NEW')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Table Number/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Server Name/i)).toBeInTheDocument();
     expect(screen.getByText('No items yet')).toBeInTheDocument();
   });
 
@@ -92,14 +94,13 @@ describe('NewOrderPage', () => {
     expect(caesarSaladButton).toBeDefined();
     fireEvent.click(caesarSaladButton!);
 
-    // Order should now show the item
+    // Order should now show the item in OrderItemRow component
     await waitFor(() => {
-      expect(screen.getByText('1 item added')).toBeInTheDocument();
-      // Check within order summary section to avoid menu card duplicate
-      const orderSummary = screen.getByText('Order Summary').parentElement;
-      expect(orderSummary).toHaveTextContent('Caesar Salad');
-      expect(screen.getByText('Qty: 1')).toBeInTheDocument();
-      expect(orderSummary).toHaveTextContent('$12.99');
+      // Check that Caesar Salad appears in order section
+      expect(screen.getAllByText('Caesar Salad').length).toBeGreaterThan(1); // Once in menu, once in order
+      expect(screen.getByText('1x')).toBeInTheDocument(); // Quantity display
+      expect(screen.getByText('$12.99 each')).toBeInTheDocument(); // Unit price
+      expect(screen.getByText('Total:')).toBeInTheDocument();
     });
   });
 
@@ -118,18 +119,19 @@ describe('NewOrderPage', () => {
     fireEvent.click(caesarButton!);
 
     await waitFor(() => {
-      expect(screen.getByText(/total:/i)).toBeInTheDocument();
-      // Check for price in order summary context
-      const orderSummarySection = screen.getByText('Order Summary').parentElement;
-      expect(orderSummarySection).toHaveTextContent('$12.99');
+      expect(screen.getByText('Total:')).toBeInTheDocument();
+      // Check that total shows the item price
+      const totalSection = screen.getByText('Total:').parentElement;
+      expect(totalSection).toHaveTextContent('$12.99');
     });
 
     // Add Pizza ($18.99)
     fireEvent.click(pizzaButton!);
 
     await waitFor(() => {
-      const orderSummarySection = screen.getByText('Order Summary').parentElement;
-      expect(orderSummarySection).toHaveTextContent('$31.98'); // 12.99 + 18.99
+      // Check that the total updates to the sum of both items
+      const totalSection = screen.getByText('Total:').parentElement;
+      expect(totalSection).toHaveTextContent('$31.98'); // 12.99 + 18.99
     });
   });
 
@@ -145,18 +147,20 @@ describe('NewOrderPage', () => {
     fireEvent.click(caesarButton!);
 
     await waitFor(() => {
-      expect(screen.getByText('Qty: 1')).toBeInTheDocument();
-      const orderSummarySection = screen.getByText('Order Summary').parentElement;
-      expect(orderSummarySection).toHaveTextContent('$12.99');
+      expect(screen.getByText('1x')).toBeInTheDocument();
+      // Check that total shows the item price
+      const totalSection = screen.getByText('Total:').parentElement;
+      expect(totalSection).toHaveTextContent('$12.99');
     });
 
     // Click again
     fireEvent.click(caesarButton!);
 
     await waitFor(() => {
-      expect(screen.getByText('Qty: 2')).toBeInTheDocument();
-      const orderSummarySection = screen.getByText('Order Summary').parentElement;
-      expect(orderSummarySection).toHaveTextContent('$25.98'); // 12.99 * 2
+      expect(screen.getByText('2x')).toBeInTheDocument();
+      // Check that total doubles
+      const totalSection = screen.getByText('Total:').parentElement;
+      expect(totalSection).toHaveTextContent('$25.98'); // 12.99 * 2
     });
   });
 
@@ -187,14 +191,19 @@ describe('NewOrderPage', () => {
     fireEvent.click(caesarButton!);
 
     await waitFor(() => {
-      expect(screen.getByText('1 item added')).toBeInTheDocument();
+      // Check that Caesar Salad appears in the order
+      expect(screen.getAllByText('Caesar Salad').length).toBeGreaterThan(1); // Appears in menu and order
+      expect(screen.getByText('1x')).toBeInTheDocument();
     });
 
     // Add second different item
     fireEvent.click(pizzaButton!);
 
     await waitFor(() => {
-      expect(screen.getByText('2 items added')).toBeInTheDocument();
+      // Check that both items appear in the order
+      expect(screen.getAllByText('Caesar Salad').length).toBeGreaterThan(1);
+      expect(screen.getAllByText('Margherita Pizza').length).toBeGreaterThan(1);
+      expect(screen.getAllByText('1x')).toHaveLength(2); // Both items have 1x quantity
     });
   });
 });
