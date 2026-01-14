@@ -36,6 +36,7 @@ describe('ImageUpload', () => {
   });
 
   it('calls onChange with null when remove button is clicked', async () => {
+    const user = userEvent.setup();
     const mockOnChange = vi.fn();
     const mockOnFileSelect = vi.fn();
     const testUrl = 'http://example.com/image.jpg';
@@ -43,7 +44,7 @@ describe('ImageUpload', () => {
     render(<ImageUpload value={testUrl} onChange={mockOnChange} onFileSelect={mockOnFileSelect} />);
     
     const removeButton = screen.getByRole('button', { name: /remove/i });
-    await userEvent.click(removeButton);
+    await user.click(removeButton);
     
     expect(mockOnChange).toHaveBeenCalledWith(null);
   });

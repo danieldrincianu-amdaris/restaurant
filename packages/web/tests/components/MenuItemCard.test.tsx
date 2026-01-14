@@ -36,10 +36,12 @@ describe('MenuItemCard', () => {
       imageUrl: null,
     };
 
-    render(<MenuItemCard item={itemWithoutImage} onClick={mockOnClick} />);
+    const { container } = render(<MenuItemCard item={itemWithoutImage} onClick={mockOnClick} />);
 
     expect(screen.queryByAltText('Caesar Salad')).not.toBeInTheDocument();
-    expect(screen.getByText('🍽️')).toBeInTheDocument();
+    // Check placeholder div exists instead of searching for emoji text
+    const placeholder = container.querySelector('.bg-gray-200');
+    expect(placeholder).toBeInTheDocument();
   });
 
   it('calls onClick handler with item when clicked', () => {

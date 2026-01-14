@@ -90,10 +90,11 @@ describe('OrderBuilder', () => {
     const Wrapper = () => {
       const { addItem } = useOrder();
       
-      // Add item on mount
+      // Add item on mount - empty deps to run once
       useEffect(() => {
         addItem(mockMenuItem);
-      }, [addItem]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
 
       return <OrderBuilder />;
     };
@@ -108,11 +109,12 @@ describe('OrderBuilder', () => {
     const Wrapper = () => {
       const { addItem } = useOrder();
       
-      // Add item twice on mount
+      // Add item twice on mount - empty deps to run once
       useEffect(() => {
         addItem(mockMenuItem);
         addItem(mockMenuItem);
-      }, [addItem]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
 
       return <OrderBuilder />;
     };

@@ -69,21 +69,23 @@ describe('MenuItemForm', () => {
   });
 
   it('displays validation errors when submitting empty form', async () => {
+    const user = userEvent.setup();
     renderWithProviders(<MenuItemForm />);
 
     const submitButton = screen.getByRole('button', { name: /save menu item/i });
-    await userEvent.click(submitButton);
+    await user.click(submitButton);
 
     expect(screen.getByText(/name is required/i)).toBeInTheDocument();
     expect(screen.getByText(/price must be greater than 0/i)).toBeInTheDocument();
   });
 
   it('allows filling out form fields', async () => {
+    const user = userEvent.setup();
     renderWithProviders(<MenuItemForm />);
 
-    await userEvent.type(screen.getByLabelText(/name/i), 'New Item');
-    await userEvent.type(screen.getByLabelText(/price/i), '12.50');
-    await userEvent.selectOptions(screen.getByLabelText(/category/i), Category.APPETIZER);
+    await user.type(screen.getByLabelText(/name/i), 'New Item');
+    await user.type(screen.getByLabelText(/price/i), '12.50');
+    await user.selectOptions(screen.getByLabelText(/category/i), Category.APPETIZER);
 
     expect((screen.getByLabelText(/name/i) as HTMLInputElement).value).toBe('New Item');
     expect((screen.getByLabelText(/price/i) as HTMLInputElement).value).toBe('12.5');

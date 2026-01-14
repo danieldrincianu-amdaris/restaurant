@@ -9,10 +9,9 @@
     "skipLibCheck": true,
     "noPropertyAccessFromIndexSignature": false,
     "outDir": "./dist",
-    "rootDir": "./src",
-    "types": ["vite/client"]
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist"]
 }
 
