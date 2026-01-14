@@ -17,3 +17,6 @@ export const validationError = (message: string, details?: any) =>
 
 export const internalError = (message: string = 'An unexpected error occurred') =>
   new AppError('INTERNAL_ERROR', message, 500);
+
+export const invalidStatusTransition = (from: string, to: string) =>
+  new AppError('INVALID_STATUS_TRANSITION', `Cannot transition from ${from} to ${to}`, 400);

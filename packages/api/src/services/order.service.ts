@@ -1,7 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { CreateOrderInput, UpdateOrderInput } from '../schemas/order.schema.js';
 import { AddOrderItemInput, UpdateOrderItemInput } from '../schemas/order-item.schema.js';
-import { AppError } from '../utils/errors.js';
+import { UpdateStatusInput, STATUS_TRANSITIONS } from '../schemas/order-status.schema.js';
+import { AppError, invalidStatusTransition } from '../utils/errors.js';
 
 export interface OrderFilters {
   status?: string;
@@ -179,6 +180,31 @@ export class OrderService {
     // Return full order with remaining items
     return this.prisma.order.findUnique({
       where: { id: orderId },
+      include: orderWithItems,
+    });
+  }
+
+  async updateOrderStatus(id: string, data: UpdateStatusInput) {
+    // Check order exists
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) {
+      return null;
+    }
+
+    // Get current status
+    const currentStatus = order.status;
+    const newStatus = data.status;
+
+    // Validate transition using STATUS_TRANSITIONS map
+    const allowedTransitions = STATUS_TRANSITIONS[currentStatus] || [];
+    if (!allowedTransitions.includes(newStatus)) {
+      throw invalidStatusTransition(currentStatus, newStatus);
+    }
+
+    // Update order status (Prisma auto-updates updatedAt)
+    return this.prisma.order.update({
+      where: { id },
+      data: { status: newStatus },
       include: orderWithItems,
     });
   }

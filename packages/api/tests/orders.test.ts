@@ -528,4 +528,131 @@ describe('Orders API', () => {
       expect(res.body.error.code).toBe('NOT_FOUND');
     });
   });
+
+  describe('PATCH /api/orders/:id/status', () => {
+    it('should update order status for valid transition', async () => {
+      const order = await prisma.order.create({
+        data: {
+          tableNumber: 40,
+          serverName: 'Ian',
+          status: 'PENDING',
+        },
+      });
+      testOrderId = order.id;
+
+      const res = await request(app)
+        .patch(`/api/orders/${order.id}/status`)
+        .send({ status: 'IN_PROGRESS' });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe(order.id);
+      expect(res.body.data.status).toBe('IN_PROGRESS');
+    });
+
+    it('should return 400 for invalid status value', async () => {
+      const order = await prisma.order.create({
+        data: { tableNumber: 41, serverName: 'Jane', status: 'PENDING' },
+      });
+      testOrderId = order.id;
+
+      const res = await request(app)
+        .patch(`/api/orders/${order.id}/status`)
+        .send({ status: 'INVALID_STATUS' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('should return 400 for invalid transition COMPLETED to IN_PROGRESS', async () => {
+      const order = await prisma.order.create({
+        data: { tableNumber: 42, serverName: 'Kevin', status: 'COMPLETED' },
+      });
+      testOrderId = order.id;
+
+      const res = await request(app)
+        .patch(`/api/orders/${order.id}/status`)
+        .send({ status: 'IN_PROGRESS' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('INVALID_STATUS_TRANSITION');
+      expect(res.body.error.message).toContain('Cannot transition from COMPLETED to IN_PROGRESS');
+    });
+
+    it('should return 400 for invalid transition CANCELED to PENDING', async () => {
+      const order = await prisma.order.create({
+        data: { tableNumber: 43, serverName: 'Laura', status: 'CANCELED' },
+      });
+      testOrderId = order.id;
+
+      const res = await request(app)
+        .patch(`/api/orders/${order.id}/status`)
+        .send({ status: 'PENDING' });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('INVALID_STATUS_TRANSITION');
+      expect(res.body.error.message).toContain('Cannot transition from CANCELED to PENDING');
+    });
+
+    it('should return 404 for non-existent order', async () => {
+      const res = await request(app)
+        .patch('/api/orders/nonexistent123/status')
+        .send({ status: 'IN_PROGRESS' });
+
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('NOT_FOUND');
+    });
+
+    it('should verify updatedAt changes after status update', async () => {
+      const order = await prisma.order.create({
+        data: { tableNumber: 44, serverName: 'Mike', status: 'PENDING' },
+      });
+      testOrderId = order.id;
+
+      const originalUpdatedAt = order.updatedAt;
+
+      // Wait a tiny bit to ensure timestamp difference
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      const res = await request(app)
+        .patch(`/api/orders/${order.id}/status`)
+        .send({ status: 'IN_PROGRESS' });
+
+      expect(res.status).toBe(200);
+      expect(new Date(res.body.data.updatedAt).getTime()).toBeGreaterThan(
+        originalUpdatedAt.getTime()
+      );
+    });
+
+    it('should test full workflow PENDING to IN_PROGRESS to COMPLETED', async () => {
+      // Create order in PENDING status
+      const order = await prisma.order.create({
+        data: { tableNumber: 45, serverName: 'Nancy', status: 'PENDING' },
+      });
+      testOrderId = order.id;
+
+      // Transition to IN_PROGRESS
+      const res1 = await request(app)
+        .patch(`/api/orders/${order.id}/status`)
+        .send({ status: 'IN_PROGRESS' });
+
+      expect(res1.status).toBe(200);
+      expect(res1.body.data.status).toBe('IN_PROGRESS');
+
+      // Transition to COMPLETED
+      const res2 = await request(app)
+        .patch(`/api/orders/${order.id}/status`)
+        .send({ status: 'COMPLETED' });
+
+      expect(res2.status).toBe(200);
+      expect(res2.body.data.status).toBe('COMPLETED');
+
+      // Verify COMPLETED is terminal - cannot transition
+      const res3 = await request(app)
+        .patch(`/api/orders/${order.id}/status`)
+        .send({ status: 'PENDING' });
+
+      expect(res3.status).toBe(400);
+      expect(res3.body.error.code).toBe('INVALID_STATUS_TRANSITION');
+    });
+  });
 });

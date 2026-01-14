@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { OrderService } from '../services/order.service.js';
 import { createOrderSchema, updateOrderSchema } from '../schemas/order.schema.js';
 import { addOrderItemSchema, updateOrderItemSchema } from '../schemas/order-item.schema.js';
+import { updateStatusSchema } from '../schemas/order-status.schema.js';
 import { notFound } from '../utils/errors.js';
 import { sendSuccess } from '../utils/response.js';
 
@@ -76,6 +77,22 @@ export function createOrderRoutes(prisma: PrismaClient): Router {
   router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const order = await orderService.deleteOrder(req.params['id']!);
+      
+      if (!order) {
+        throw notFound('Order');
+      }
+      
+      return sendSuccess(res, order);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // PATCH /api/orders/:id/status - Update order status
+  router.patch('/:id/status', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const validated = updateStatusSchema.parse(req.body);
+      const order = await orderService.updateOrderStatus(req.params['id']!, validated);
       
       if (!order) {
         throw notFound('Order');

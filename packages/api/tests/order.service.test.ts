@@ -385,4 +385,104 @@ describe('OrderService', () => {
       expect(result).toBeNull();
       expect(mockPrisma.orderItem.delete).not.toHaveBeenCalled();
     });
-  });});
+  });
+
+  describe('updateOrderStatus', () => {
+    it('should update status for valid transition PENDING to IN_PROGRESS', async () => {
+      const mockOrder = { id: 'order1', status: 'PENDING' };
+      const mockUpdatedOrder = {
+        id: 'order1',
+        status: 'IN_PROGRESS',
+        updatedAt: new Date(),
+        items: [],
+      };
+
+      mockPrisma.order.findUnique.mockResolvedValue(mockOrder);
+      mockPrisma.order.update.mockResolvedValue(mockUpdatedOrder);
+
+      const result = await orderService.updateOrderStatus('order1', { status: 'IN_PROGRESS' });
+
+      expect(result).toEqual(mockUpdatedOrder);
+      expect(mockPrisma.order.update).toHaveBeenCalledWith({
+        where: { id: 'order1' },
+        data: { status: 'IN_PROGRESS' },
+        include: mockOrderWithItems,
+      });
+    });
+
+    it('should update status for valid transition PENDING to CANCELED', async () => {
+      const mockOrder = { id: 'order1', status: 'PENDING' };
+      const mockUpdatedOrder = { id: 'order1', status: 'CANCELED', items: [] };
+
+      mockPrisma.order.findUnique.mockResolvedValue(mockOrder);
+      mockPrisma.order.update.mockResolvedValue(mockUpdatedOrder);
+
+      const result = await orderService.updateOrderStatus('order1', { status: 'CANCELED' });
+
+      expect(result).toEqual(mockUpdatedOrder);
+    });
+
+    it('should update status for valid transition IN_PROGRESS to COMPLETED', async () => {
+      const mockOrder = { id: 'order1', status: 'IN_PROGRESS' };
+      const mockUpdatedOrder = { id: 'order1', status: 'COMPLETED', items: [] };
+
+      mockPrisma.order.findUnique.mockResolvedValue(mockOrder);
+      mockPrisma.order.update.mockResolvedValue(mockUpdatedOrder);
+
+      const result = await orderService.updateOrderStatus('order1', { status: 'COMPLETED' });
+
+      expect(result).toEqual(mockUpdatedOrder);
+    });
+
+    it('should update status for valid transition IN_PROGRESS to HALTED', async () => {
+      const mockOrder = { id: 'order1', status: 'IN_PROGRESS' };
+      const mockUpdatedOrder = { id: 'order1', status: 'HALTED', items: [] };
+
+      mockPrisma.order.findUnique.mockResolvedValue(mockOrder);
+      mockPrisma.order.update.mockResolvedValue(mockUpdatedOrder);
+
+      const result = await orderService.updateOrderStatus('order1', { status: 'HALTED' });
+
+      expect(result).toEqual(mockUpdatedOrder);
+    });
+
+    it('should update status for valid transition HALTED to IN_PROGRESS', async () => {
+      const mockOrder = { id: 'order1', status: 'HALTED' };
+      const mockUpdatedOrder = { id: 'order1', status: 'IN_PROGRESS', items: [] };
+
+      mockPrisma.order.findUnique.mockResolvedValue(mockOrder);
+      mockPrisma.order.update.mockResolvedValue(mockUpdatedOrder);
+
+      const result = await orderService.updateOrderStatus('order1', { status: 'IN_PROGRESS' });
+
+      expect(result).toEqual(mockUpdatedOrder);
+    });
+
+    it('should throw error for invalid transition COMPLETED to IN_PROGRESS', async () => {
+      const mockOrder = { id: 'order1', status: 'COMPLETED' };
+      mockPrisma.order.findUnique.mockResolvedValue(mockOrder);
+
+      await expect(
+        orderService.updateOrderStatus('order1', { status: 'IN_PROGRESS' })
+      ).rejects.toThrow('Cannot transition from COMPLETED to IN_PROGRESS');
+    });
+
+    it('should throw error for invalid transition CANCELED to PENDING', async () => {
+      const mockOrder = { id: 'order1', status: 'CANCELED' };
+      mockPrisma.order.findUnique.mockResolvedValue(mockOrder);
+
+      await expect(
+        orderService.updateOrderStatus('order1', { status: 'PENDING' })
+      ).rejects.toThrow('Cannot transition from CANCELED to PENDING');
+    });
+
+    it('should return null when order not found', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue(null);
+
+      const result = await orderService.updateOrderStatus('order999', { status: 'IN_PROGRESS' });
+
+      expect(result).toBeNull();
+      expect(mockPrisma.order.update).not.toHaveBeenCalled();
+    });
+  });
+});
