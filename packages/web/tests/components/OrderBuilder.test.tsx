@@ -1,9 +1,24 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { useEffect } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import OrderBuilder from '../../src/components/staff/OrderBuilder';
 import { OrderProvider, useOrder } from '../../src/contexts/OrderContext';
+import { ToastProvider } from '../../src/contexts/ToastContext';
 import { MenuItem, Category, FoodType } from '@restaurant/shared';
+import * as useCreateOrderModule from '../../src/hooks/useCreateOrder';
+
+// Mock dependencies
+vi.mock('../../src/hooks/useCreateOrder');
+
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => vi.fn(),
+  };
+});
 
 // Mock child components
 vi.mock('../../src/components/staff/OrderItemRow', () => ({
@@ -12,6 +27,16 @@ vi.mock('../../src/components/staff/OrderItemRow', () => ({
       {item.menuItem.name} - {item.quantity}x
     </div>
   ),
+}));
+
+vi.mock('../../src/components/ui/ConfirmDialog', () => ({
+  default: ({ isOpen, onConfirm, onCancel }: { isOpen: boolean; onConfirm: () => void; onCancel: () => void }) => 
+    isOpen ? (
+      <div data-testid="confirm-dialog">
+        <button onClick={onConfirm}>Confirm</button>
+        <button onClick={onCancel}>Cancel</button>
+      </div>
+    ) : null,
 }));
 
 const mockMenuItem: MenuItem = {
@@ -28,8 +53,25 @@ const mockMenuItem: MenuItem = {
 };
 
 describe('OrderBuilder', () => {
+  const mockCreateOrder = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(useCreateOrderModule, 'useCreateOrder').mockReturnValue({
+      createOrder: mockCreateOrder,
+      isSubmitting: false,
+      error: null,
+    });
+  });
+
   const renderWithProvider = (component: React.ReactNode) => {
-    return render(<OrderProvider>{component}</OrderProvider>);
+    return render(
+      <MemoryRouter>
+        <ToastProvider>
+          <OrderProvider>{component}</OrderProvider>
+        </ToastProvider>
+      </MemoryRouter>
+    );
   };
 
   it('renders empty state when no items', () => {
@@ -135,5 +177,130 @@ describe('OrderBuilder', () => {
     renderWithProvider(<OrderBuilder />);
 
     expect(screen.getByText('Order #NEW')).toBeInTheDocument();
+  });
+
+  it('Submit button is disabled when no items', () => {
+    renderWithProvider(<OrderBuilder />);
+
+    const submitButton = screen.getByRole('button', { name: /Submit Order/i });
+    expect(submitButton).toBeDisabled();
+  });
+
+  it('Submit button is disabled when no table number', () => {
+    const Wrapper = () => {
+      const { addItem, setServerName } = useOrder();
+      
+      useEffect(() => {
+        addItem(mockMenuItem);
+        setServerName('John');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
+
+      return <OrderBuilder />;
+    };
+
+    renderWithProvider(<Wrapper />);
+
+    const submitButton = screen.getByRole('button', { name: /Submit Order/i });
+    expect(submitButton).toBeDisabled();
+  });
+
+  it('Submit button is disabled when no server name', () => {
+    const Wrapper = () => {
+      const { addItem, setTableNumber } = useOrder();
+      
+      useEffect(() => {
+        addItem(mockMenuItem);
+        setTableNumber(5);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
+
+      return <OrderBuilder />;
+    };
+
+    renderWithProvider(<Wrapper />);
+
+    const submitButton = screen.getByRole('button', { name: /Submit Order/i });
+    expect(submitButton).toBeDisabled();
+  });
+
+  it('Submit button is enabled when all requirements are met', () => {
+    const Wrapper = () => {
+      const { addItem, setTableNumber, setServerName } = useOrder();
+      
+      useEffect(() => {
+        addItem(mockMenuItem);
+        setTableNumber(5);
+        setServerName('John');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
+
+      return <OrderBuilder />;
+    };
+
+    renderWithProvider(<Wrapper />);
+
+    const submitButton = screen.getByRole('button', { name: /Submit Order/i });
+    expect(submitButton).toBeEnabled();
+  });
+
+  it('Clear button shows confirmation when items exist', async () => {
+    const user = userEvent.setup();
+    const Wrapper = () => {
+      const { addItem } = useOrder();
+      
+      useEffect(() => {
+        addItem(mockMenuItem);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
+
+      return <OrderBuilder />;
+    };
+
+    renderWithProvider(<Wrapper />);
+
+    const clearButton = screen.getByRole('button', { name: /Clear/i });
+    await user.click(clearButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('confirm-dialog')).toBeInTheDocument();
+    });
+  });
+
+  it('Clear button clears order when confirmed', async () => {
+    const user = userEvent.setup();
+    const Wrapper = () => {
+      const { addItem, items } = useOrder();
+      
+      useEffect(() => {
+        addItem(mockMenuItem);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, []);
+
+      return (
+        <div>
+          <OrderBuilder />
+          <div data-testid="item-count">{items.length}</div>
+        </div>
+      );
+    };
+
+    renderWithProvider(<Wrapper />);
+
+    expect(screen.getByTestId('item-count')).toHaveTextContent('1');
+
+    const clearButton = screen.getByRole('button', { name: /Clear/i });
+    await user.click(clearButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('confirm-dialog')).toBeInTheDocument();
+    });
+
+    const confirmButton = screen.getByRole('button', { name: /Confirm/i });
+    await user.click(confirmButton);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('item-count')).toHaveTextContent('0');
+    });
   });
 });

@@ -1,14 +1,60 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useOrder } from '../../contexts/OrderContext';
+import { useCreateOrder } from '../../hooks/useCreateOrder';
+import { useToast } from '../../contexts/ToastContext';
 import OrderItemRow from './OrderItemRow';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 function OrderBuilder() {
-  const { items, tableNumber, serverName, setTableNumber, setServerName } = useOrder();
+  const { items, tableNumber, serverName, setTableNumber, setServerName, clearOrder } = useOrder();
+  const { createOrder, isSubmitting } = useCreateOrder();
+  const { showToast } = useToast();
+  const navigate = useNavigate();
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const total = useMemo(
     () => items.reduce((sum, item) => sum + Number(item.menuItem.price) * item.quantity, 0),
     [items]
   );
+
+  const canSubmit = items.length > 0 && tableNumber !== null && serverName.trim() !== '';
+
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
+
+    try {
+      const order = await createOrder({
+        tableNumber: tableNumber!,
+        serverName,
+        items: items.map(item => ({
+          menuItemId: item.menuItemId,
+          quantity: item.quantity,
+          specialInstructions: item.specialInstructions || undefined,
+        })),
+      });
+
+      showToast(`Order #${order.id} submitted to kitchen`, 'success');
+      clearOrder();
+      navigate('/staff/orders');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit order';
+      showToast(errorMessage, 'error');
+    }
+  };
+
+  const handleClear = () => {
+    if (items.length > 0) {
+      setShowClearConfirm(true);
+    } else {
+      clearOrder();
+    }
+  };
+
+  const confirmClear = () => {
+    clearOrder();
+    setShowClearConfirm(false);
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -76,6 +122,36 @@ function OrderBuilder() {
           </div>
         </div>
       )}
+
+      {/* Action Buttons */}
+      <div className="mt-4 flex gap-3">
+        <button
+          onClick={handleClear}
+          disabled={isSubmitting}
+          className="flex-1 px-4 py-3 min-h-[44px] text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Clear
+        </button>
+        <button
+          onClick={handleSubmit}
+          disabled={!canSubmit || isSubmitting}
+          title={!canSubmit ? 'Enter table number, server name, and add at least one item' : ''}
+          className="flex-1 px-4 py-3 min-h-[44px] bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-600"
+        >
+          {isSubmitting ? 'Submitting...' : 'Submit Order ▶'}
+        </button>
+      </div>
+
+      {/* Clear Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showClearConfirm}
+        title="Clear Order"
+        message="Clear this order? All items will be removed."
+        confirmLabel="Clear"
+        onConfirm={confirmClear}
+        onCancel={() => setShowClearConfirm(false)}
+        variant="danger"
+      />
     </div>
   );
 }

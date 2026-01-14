@@ -1,12 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { Category, FoodType, MenuItem } from '@restaurant/shared';
 import NewOrderPage from '../../src/pages/staff/NewOrderPage';
 import * as useAvailableMenuItemsHook from '../../src/hooks/useAvailableMenuItems';
+import * as useCreateOrderModule from '../../src/hooks/useCreateOrder';
+import * as ToastContext from '../../src/contexts/ToastContext';
 
 // Mock dependencies
 vi.mock('../../src/hooks/useAvailableMenuItems');
+vi.mock('../../src/hooks/useCreateOrder');
+vi.mock('../../src/contexts/ToastContext', async () => {
+  const actual = await vi.importActual('../../src/contexts/ToastContext');
+  return {
+    ...actual,
+    useToast: vi.fn(),
+  };
+});
 vi.mock('../../src/components/ui/LoadingSpinner', () => ({
   default: () => <div data-testid="loading-spinner">Loading...</div>,
 }));
@@ -39,6 +50,9 @@ const mockMenuItems: MenuItem[] = [
 ];
 
 describe('NewOrderPage', () => {
+  const mockCreateOrder = vi.fn();
+  const mockShowToast = vi.fn();
+
   beforeEach(() => {
     vi.clearAllMocks();
     
@@ -48,13 +62,28 @@ describe('NewOrderPage', () => {
       error: null,
       refetch: vi.fn(),
     });
+
+    vi.spyOn(useCreateOrderModule, 'useCreateOrder').mockReturnValue({
+      createOrder: mockCreateOrder,
+      isSubmitting: false,
+      error: null,
+    });
+
+    vi.spyOn(ToastContext, 'useToast').mockReturnValue({
+      toasts: [],
+      showToast: mockShowToast,
+      removeToast: vi.fn(),
+    });
   });
 
-  const renderNewOrderPage = () => {
+  const renderNewOrderPage = (initialRoute = '/staff/orders/new') => {
     return render(
-      <BrowserRouter>
-        <NewOrderPage />
-      </BrowserRouter>
+      <MemoryRouter initialEntries={[initialRoute]}>
+        <Routes>
+          <Route path="/staff/orders/new" element={<NewOrderPage />} />
+          <Route path="/staff/orders" element={<div>Orders Page</div>} />
+        </Routes>
+      </MemoryRouter>
     );
   };
 
@@ -204,6 +233,98 @@ describe('NewOrderPage', () => {
       expect(screen.getAllByText('Caesar Salad').length).toBeGreaterThan(1);
       expect(screen.getAllByText('Margherita Pizza').length).toBeGreaterThan(1);
       expect(screen.getAllByText('1x')).toHaveLength(2); // Both items have 1x quantity
+    });
+  });
+
+  it('successful submission flow - shows toast and redirects', async () => {
+    const user = userEvent.setup();
+    const mockOrder = {
+      id: 'order-123',
+      tableNumber: 5,
+      serverName: 'John',
+      status: 'PENDING' as const,
+      createdAt: '2026-01-14T10:00:00Z',
+      updatedAt: '2026-01-14T10:00:00Z',
+      items: [],
+    };
+
+    mockCreateOrder.mockResolvedValue(mockOrder);
+
+    renderNewOrderPage();
+
+    // Add an item
+    const menuItems = screen.getAllByRole('button');
+    const caesarButton = menuItems.find((button) =>
+      button.textContent?.includes('Caesar Salad')
+    );
+    await user.click(caesarButton!);
+
+    await waitFor(() => {
+      expect(screen.getByText('1x')).toBeInTheDocument();
+    });
+
+    // Fill in table number and server name
+    const tableInput = screen.getByLabelText(/Table Number/i);
+    const serverInput = screen.getByLabelText(/Server Name/i);
+
+    await user.type(tableInput, '5');
+    await user.type(serverInput, 'John');
+
+    // Submit order
+    const submitButton = screen.getByRole('button', { name: /Submit Order/i });
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockCreateOrder).toHaveBeenCalledWith({
+        tableNumber: 5,
+        serverName: 'John',
+        items: [{
+          menuItemId: '1',
+          quantity: 1,
+          specialInstructions: undefined,
+        }],
+      });
+      expect(mockShowToast).toHaveBeenCalledWith('Order #order-123 submitted to kitchen', 'success');
+      expect(screen.getByText('Orders Page')).toBeInTheDocument();
+    });
+  });
+
+  it('error handling - shows error toast and preserves data', async () => {
+    const user = userEvent.setup();
+    mockCreateOrder.mockRejectedValue(new Error('Network error'));
+
+    renderNewOrderPage();
+
+    // Add an item
+    const menuItems = screen.getAllByRole('button');
+    const caesarButton = menuItems.find((button) =>
+      button.textContent?.includes('Caesar Salad')
+    );
+    await user.click(caesarButton!);
+
+    await waitFor(() => {
+      expect(screen.getByText('1x')).toBeInTheDocument();
+    });
+
+    // Fill in table number and server name
+    const tableInput = screen.getByLabelText(/Table Number/i);
+    const serverInput = screen.getByLabelText(/Server Name/i);
+
+    await user.type(tableInput, '5');
+    await user.type(serverInput, 'John');
+
+    // Submit order
+    const submitButton = screen.getByRole('button', { name: /Submit Order/i });
+    await user.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalledWith('Network error', 'error');
+      // Verify data is still there (not cleared)
+      expect(screen.getByText('1x')).toBeInTheDocument();
+      expect((tableInput as HTMLInputElement).value).toBe('5');
+      expect((serverInput as HTMLInputElement).value).toBe('John');
+      // Should still be on new order page
+      expect(screen.queryByText('Orders Page')).not.toBeInTheDocument();
     });
   });
 });
