@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { OrderService } from '../services/order.service.js';
 import { createOrderSchema, updateOrderSchema } from '../schemas/order.schema.js';
+import { addOrderItemSchema, updateOrderItemSchema } from '../schemas/order-item.schema.js';
 import { notFound } from '../utils/errors.js';
 import { sendSuccess } from '../utils/response.js';
 
@@ -78,6 +79,60 @@ export function createOrderRoutes(prisma: PrismaClient): Router {
       
       if (!order) {
         throw notFound('Order');
+      }
+      
+      return sendSuccess(res, order);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // POST /api/orders/:id/items - Add item to order
+  router.post('/:id/items', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const validated = addOrderItemSchema.parse(req.body);
+      const order = await orderService.addOrderItem(req.params['id']!, validated);
+      
+      if (!order) {
+        throw notFound('Order');
+      }
+      
+      return sendSuccess(res, order, 201);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // PUT /api/orders/:id/items/:itemId - Update order item
+  router.put('/:id/items/:itemId', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const validated = updateOrderItemSchema.parse(req.body);
+      const order = await orderService.updateOrderItem(
+        req.params['id']!,
+        req.params['itemId']!,
+        validated
+      );
+      
+      if (!order) {
+        throw notFound('Order or Order Item');
+      }
+      
+      return sendSuccess(res, order);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // DELETE /api/orders/:id/items/:itemId - Remove order item
+  router.delete('/:id/items/:itemId', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const order = await orderService.removeOrderItem(
+        req.params['id']!,
+        req.params['itemId']!
+      );
+      
+      if (!order) {
+        throw notFound('Order or Order Item');
       }
       
       return sendSuccess(res, order);

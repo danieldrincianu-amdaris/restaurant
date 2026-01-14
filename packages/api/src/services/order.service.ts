@@ -1,5 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { CreateOrderInput, UpdateOrderInput } from '../schemas/order.schema.js';
+import { AddOrderItemInput, UpdateOrderItemInput } from '../schemas/order-item.schema.js';
+import { AppError } from '../utils/errors.js';
 
 export interface OrderFilters {
   status?: string;
@@ -75,6 +77,108 @@ export class OrderService {
 
     return this.prisma.order.delete({
       where: { id },
+      include: orderWithItems,
+    });
+  }
+
+  async addOrderItem(orderId: string, data: AddOrderItemInput) {
+    // Check order exists
+    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) {
+      return null;
+    }
+
+    // Check menu item exists and is available
+    const menuItem = await this.prisma.menuItem.findUnique({
+      where: { id: data.menuItemId },
+    });
+
+    if (!menuItem) {
+      throw new AppError(
+        'MENU_ITEM_NOT_FOUND',
+        'Menu item not found',
+        400
+      );
+    }
+
+    if (!menuItem.available) {
+      throw new AppError(
+        'MENU_ITEM_UNAVAILABLE',
+        `Menu item '${menuItem.name}' is not available (86'd)`,
+        400
+      );
+    }
+
+    // Create order item
+    await this.prisma.orderItem.create({
+      data: {
+        orderId,
+        menuItemId: data.menuItemId,
+        quantity: data.quantity,
+        specialInstructions: data.specialInstructions,
+      },
+    });
+
+    // Return full order with items
+    return this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: orderWithItems,
+    });
+  }
+
+  async updateOrderItem(orderId: string, itemId: string, data: UpdateOrderItemInput) {
+    // Check order exists
+    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) {
+      return null;
+    }
+
+    // Check order item exists and belongs to the order
+    const orderItem = await this.prisma.orderItem.findUnique({
+      where: { id: itemId },
+    });
+
+    if (!orderItem || orderItem.orderId !== orderId) {
+      return null;
+    }
+
+    // Update order item
+    await this.prisma.orderItem.update({
+      where: { id: itemId },
+      data,
+    });
+
+    // Return full order with items
+    return this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: orderWithItems,
+    });
+  }
+
+  async removeOrderItem(orderId: string, itemId: string) {
+    // Check order exists
+    const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) {
+      return null;
+    }
+
+    // Check order item exists and belongs to the order
+    const orderItem = await this.prisma.orderItem.findUnique({
+      where: { id: itemId },
+    });
+
+    if (!orderItem || orderItem.orderId !== orderId) {
+      return null;
+    }
+
+    // Delete order item
+    await this.prisma.orderItem.delete({
+      where: { id: itemId },
+    });
+
+    // Return full order with remaining items
+    return this.prisma.order.findUnique({
+      where: { id: orderId },
       include: orderWithItems,
     });
   }

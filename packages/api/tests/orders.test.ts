@@ -258,4 +258,274 @@ describe('Orders API', () => {
       expect(res.body.error.code).toBe('NOT_FOUND');
     });
   });
+
+  describe('POST /api/orders/:id/items', () => {
+    let testMenuItemId: string;
+
+    beforeAll(async () => {
+      // Create a test menu item for order items
+      const menuItem = await prisma.menuItem.create({
+        data: {
+          name: 'Test Pizza',
+          price: 15.99,
+          category: 'MAIN',
+          foodType: 'PIZZA',
+          ingredients: ['cheese', 'tomato'],
+          available: true,
+        },
+      });
+      testMenuItemId = menuItem.id;
+    });
+
+    afterAll(async () => {
+      // Cleanup test menu item
+      await prisma.menuItem.delete({ where: { id: testMenuItemId } }).catch(() => {});
+    });
+
+    it('should add item to order successfully', async () => {
+      // Create test order
+      const order = await prisma.order.create({
+        data: {
+          tableNumber: 10,
+          serverName: 'Alice',
+          status: 'PENDING',
+        },
+      });
+      testOrderId = order.id;
+
+      const res = await request(app)
+        .post(`/api/orders/${order.id}/items`)
+        .send({
+          menuItemId: testMenuItemId,
+          quantity: 2,
+          specialInstructions: 'No olives',
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.data.id).toBe(order.id);
+      expect(res.body.data.items).toHaveLength(1);
+      expect(res.body.data.items[0].menuItemId).toBe(testMenuItemId);
+      expect(res.body.data.items[0].quantity).toBe(2);
+      expect(res.body.data.items[0].specialInstructions).toBe('No olives');
+    });
+
+    it('should return 400 for quantity less than 1', async () => {
+      const order = await prisma.order.create({
+        data: { tableNumber: 11, serverName: 'Bob', status: 'PENDING' },
+      });
+      testOrderId = order.id;
+
+      const res = await request(app)
+        .post(`/api/orders/${order.id}/items`)
+        .send({
+          menuItemId: testMenuItemId,
+          quantity: 0,
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('should return 400 for unavailable menu item', async () => {
+      // Create unavailable menu item
+      const unavailableItem = await prisma.menuItem.create({
+        data: {
+          name: 'Unavailable Item',
+          price: 10.0,
+          category: 'MAIN',
+          foodType: 'OTHER',
+          ingredients: [],
+          available: false,
+        },
+      });
+
+      const order = await prisma.order.create({
+        data: { tableNumber: 12, serverName: 'Carol', status: 'PENDING' },
+      });
+      testOrderId = order.id;
+
+      const res = await request(app)
+        .post(`/api/orders/${order.id}/items`)
+        .send({
+          menuItemId: unavailableItem.id,
+          quantity: 1,
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('MENU_ITEM_UNAVAILABLE');
+
+      // Cleanup
+      await prisma.menuItem.delete({ where: { id: unavailableItem.id } });
+    });
+
+    it('should return 400 for non-existent menu item', async () => {
+      const order = await prisma.order.create({
+        data: { tableNumber: 13, serverName: 'Dave', status: 'PENDING' },
+      });
+      testOrderId = order.id;
+
+      const res = await request(app)
+        .post(`/api/orders/${order.id}/items`)
+        .send({
+          menuItemId: 'nonexistent123',
+          quantity: 1,
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error.code).toBe('MENU_ITEM_NOT_FOUND');
+    });
+
+    it('should return 404 for non-existent order', async () => {
+      const res = await request(app)
+        .post('/api/orders/nonexistent123/items')
+        .send({
+          menuItemId: testMenuItemId,
+          quantity: 1,
+        });
+
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('NOT_FOUND');
+    });
+  });
+
+  describe('PUT /api/orders/:id/items/:itemId', () => {
+    it('should update order item successfully', async () => {
+      // Create order with item
+      const menuItem = await prisma.menuItem.create({
+        data: {
+          name: 'Update Test Item',
+          price: 12.0,
+          category: 'MAIN',
+          foodType: 'OTHER',
+          ingredients: [],
+          available: true,
+        },
+      });
+
+      const order = await prisma.order.create({
+        data: {
+          tableNumber: 20,
+          serverName: 'Eve',
+          status: 'PENDING',
+          items: {
+            create: {
+              menuItemId: menuItem.id,
+              quantity: 1,
+            },
+          },
+        },
+        include: { items: true },
+      });
+      testOrderId = order.id;
+
+      const itemId = order.items[0].id;
+
+      const res = await request(app)
+        .put(`/api/orders/${order.id}/items/${itemId}`)
+        .send({
+          quantity: 3,
+          specialInstructions: 'Extra sauce',
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe(order.id);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const updatedItem = res.body.data.items.find((i: any) => i.id === itemId);
+      expect(updatedItem.quantity).toBe(3);
+      expect(updatedItem.specialInstructions).toBe('Extra sauce');
+
+      // Cleanup - delete orderItem first to avoid foreign key constraint
+      await prisma.orderItem.deleteMany({ where: { menuItemId: menuItem.id } });
+      await prisma.menuItem.delete({ where: { id: menuItem.id } });
+    });
+
+    it('should return 404 for non-existent order', async () => {
+      const res = await request(app)
+        .put('/api/orders/nonexistent123/items/item123')
+        .send({ quantity: 2 });
+
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('NOT_FOUND');
+    });
+
+    it('should return 404 for non-existent item', async () => {
+      const order = await prisma.order.create({
+        data: { tableNumber: 21, serverName: 'Frank', status: 'PENDING' },
+      });
+      testOrderId = order.id;
+
+      const res = await request(app)
+        .put(`/api/orders/${order.id}/items/nonexistent123`)
+        .send({ quantity: 2 });
+
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('NOT_FOUND');
+    });
+  });
+
+  describe('DELETE /api/orders/:id/items/:itemId', () => {
+    it('should remove order item successfully', async () => {
+      // Create order with item
+      const menuItem = await prisma.menuItem.create({
+        data: {
+          name: 'Delete Test Item',
+          price: 8.0,
+          category: 'APPETIZER',
+          foodType: 'OTHER',
+          ingredients: [],
+          available: true,
+        },
+      });
+
+      const order = await prisma.order.create({
+        data: {
+          tableNumber: 30,
+          serverName: 'Grace',
+          status: 'PENDING',
+          items: {
+            create: {
+              menuItemId: menuItem.id,
+              quantity: 2,
+            },
+          },
+        },
+        include: { items: true },
+      });
+      testOrderId = order.id;
+
+      const itemId = order.items[0].id;
+
+      const res = await request(app).delete(`/api/orders/${order.id}/items/${itemId}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe(order.id);
+      expect(res.body.data.items).toHaveLength(0);
+
+      // Verify item is deleted
+      const deletedItem = await prisma.orderItem.findUnique({ where: { id: itemId } });
+      expect(deletedItem).toBeNull();
+
+      // Cleanup
+      await prisma.menuItem.delete({ where: { id: menuItem.id } });
+    });
+
+    it('should return 404 for non-existent order', async () => {
+      const res = await request(app).delete('/api/orders/nonexistent123/items/item123');
+
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('NOT_FOUND');
+    });
+
+    it('should return 404 for non-existent item', async () => {
+      const order = await prisma.order.create({
+        data: { tableNumber: 31, serverName: 'Hank', status: 'PENDING' },
+      });
+      testOrderId = order.id;
+
+      const res = await request(app).delete(`/api/orders/${order.id}/items/nonexistent123`);
+
+      expect(res.status).toBe(404);
+      expect(res.body.error.code).toBe('NOT_FOUND');
+    });
+  });
 });

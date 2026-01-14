@@ -23,6 +23,15 @@ describe('OrderService', () => {
         update: vi.fn(),
         delete: vi.fn(),
       },
+      menuItem: {
+        findUnique: vi.fn(),
+      },
+      orderItem: {
+        create: vi.fn(),
+        findUnique: vi.fn(),
+        update: vi.fn(),
+        delete: vi.fn(),
+      },
     };
     orderService = new OrderService(mockPrisma);
   });
@@ -196,4 +205,184 @@ describe('OrderService', () => {
       expect(mockPrisma.order.delete).not.toHaveBeenCalled();
     });
   });
-});
+
+  describe('addOrderItem', () => {
+    it('should add item to order successfully', async () => {
+      const mockOrder = { id: 'order1', tableNumber: 5 };
+      const mockMenuItem = { id: 'menu1', name: 'Pizza', available: true };
+      const mockOrderWithItem = {
+        id: 'order1',
+        tableNumber: 5,
+        items: [{ id: 'item1', menuItemId: 'menu1', quantity: 2 }],
+      };
+
+      mockPrisma.order.findUnique.mockResolvedValueOnce(mockOrder);
+      mockPrisma.menuItem.findUnique.mockResolvedValue(mockMenuItem);
+      mockPrisma.orderItem.create.mockResolvedValue({ id: 'item1' });
+      mockPrisma.order.findUnique.mockResolvedValueOnce(mockOrderWithItem);
+
+      const result = await orderService.addOrderItem('order1', {
+        menuItemId: 'menu1',
+        quantity: 2,
+        specialInstructions: 'No olives',
+      });
+
+      expect(result).toEqual(mockOrderWithItem);
+      expect(mockPrisma.orderItem.create).toHaveBeenCalledWith({
+        data: {
+          orderId: 'order1',
+          menuItemId: 'menu1',
+          quantity: 2,
+          specialInstructions: 'No olives',
+        },
+      });
+    });
+
+    it('should return null when order not found', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue(null);
+
+      const result = await orderService.addOrderItem('order999', {
+        menuItemId: 'menu1',
+        quantity: 2,
+      });
+
+      expect(result).toBeNull();
+      expect(mockPrisma.orderItem.create).not.toHaveBeenCalled();
+    });
+
+    it('should throw error when menu item not found', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({ id: 'order1' });
+      mockPrisma.menuItem.findUnique.mockResolvedValue(null);
+
+      await expect(
+        orderService.addOrderItem('order1', {
+          menuItemId: 'menu999',
+          quantity: 2,
+        })
+      ).rejects.toThrow('Menu item not found');
+    });
+
+    it('should throw error when menu item unavailable', async () => {
+      const mockMenuItem = { id: 'menu1', name: 'Pizza', available: false };
+      mockPrisma.order.findUnique.mockResolvedValue({ id: 'order1' });
+      mockPrisma.menuItem.findUnique.mockResolvedValue(mockMenuItem);
+
+      await expect(
+        orderService.addOrderItem('order1', {
+          menuItemId: 'menu1',
+          quantity: 2,
+        })
+      ).rejects.toThrow("Menu item 'Pizza' is not available (86'd)");
+    });
+  });
+
+  describe('updateOrderItem', () => {
+    it('should update order item successfully', async () => {
+      const mockOrder = { id: 'order1' };
+      const mockOrderItem = { id: 'item1', orderId: 'order1', quantity: 2 };
+      const mockUpdatedOrder = {
+        id: 'order1',
+        items: [{ id: 'item1', quantity: 3, specialInstructions: 'Extra cheese' }],
+      };
+
+      mockPrisma.order.findUnique.mockResolvedValueOnce(mockOrder);
+      mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
+      mockPrisma.orderItem.update.mockResolvedValue({ ...mockOrderItem, quantity: 3 });
+      mockPrisma.order.findUnique.mockResolvedValueOnce(mockUpdatedOrder);
+
+      const result = await orderService.updateOrderItem('order1', 'item1', {
+        quantity: 3,
+        specialInstructions: 'Extra cheese',
+      });
+
+      expect(result).toEqual(mockUpdatedOrder);
+      expect(mockPrisma.orderItem.update).toHaveBeenCalledWith({
+        where: { id: 'item1' },
+        data: { quantity: 3, specialInstructions: 'Extra cheese' },
+      });
+    });
+
+    it('should return null when order not found', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue(null);
+
+      const result = await orderService.updateOrderItem('order999', 'item1', { quantity: 3 });
+
+      expect(result).toBeNull();
+      expect(mockPrisma.orderItem.update).not.toHaveBeenCalled();
+    });
+
+    it('should return null when order item not found', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({ id: 'order1' });
+      mockPrisma.orderItem.findUnique.mockResolvedValue(null);
+
+      const result = await orderService.updateOrderItem('order1', 'item999', { quantity: 3 });
+
+      expect(result).toBeNull();
+      expect(mockPrisma.orderItem.update).not.toHaveBeenCalled();
+    });
+
+    it('should return null when order item belongs to different order', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({ id: 'order1' });
+      mockPrisma.orderItem.findUnique.mockResolvedValue({
+        id: 'item1',
+        orderId: 'order2',
+      });
+
+      const result = await orderService.updateOrderItem('order1', 'item1', { quantity: 3 });
+
+      expect(result).toBeNull();
+      expect(mockPrisma.orderItem.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('removeOrderItem', () => {
+    it('should remove order item successfully', async () => {
+      const mockOrder = { id: 'order1' };
+      const mockOrderItem = { id: 'item1', orderId: 'order1' };
+      const mockUpdatedOrder = { id: 'order1', items: [] };
+
+      mockPrisma.order.findUnique.mockResolvedValueOnce(mockOrder);
+      mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
+      mockPrisma.orderItem.delete.mockResolvedValue(mockOrderItem);
+      mockPrisma.order.findUnique.mockResolvedValueOnce(mockUpdatedOrder);
+
+      const result = await orderService.removeOrderItem('order1', 'item1');
+
+      expect(result).toEqual(mockUpdatedOrder);
+      expect(mockPrisma.orderItem.delete).toHaveBeenCalledWith({
+        where: { id: 'item1' },
+      });
+    });
+
+    it('should return null when order not found', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue(null);
+
+      const result = await orderService.removeOrderItem('order999', 'item1');
+
+      expect(result).toBeNull();
+      expect(mockPrisma.orderItem.delete).not.toHaveBeenCalled();
+    });
+
+    it('should return null when order item not found', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({ id: 'order1' });
+      mockPrisma.orderItem.findUnique.mockResolvedValue(null);
+
+      const result = await orderService.removeOrderItem('order1', 'item999');
+
+      expect(result).toBeNull();
+      expect(mockPrisma.orderItem.delete).not.toHaveBeenCalled();
+    });
+
+    it('should return null when order item belongs to different order', async () => {
+      mockPrisma.order.findUnique.mockResolvedValue({ id: 'order1' });
+      mockPrisma.orderItem.findUnique.mockResolvedValue({
+        id: 'item1',
+        orderId: 'order2',
+      });
+
+      const result = await orderService.removeOrderItem('order1', 'item1');
+
+      expect(result).toBeNull();
+      expect(mockPrisma.orderItem.delete).not.toHaveBeenCalled();
+    });
+  });});
