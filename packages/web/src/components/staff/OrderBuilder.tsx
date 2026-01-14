@@ -1,10 +1,14 @@
+import { useMemo } from 'react';
 import { useOrder } from '../../contexts/OrderContext';
 import OrderItemRow from './OrderItemRow';
 
 function OrderBuilder() {
   const { items, tableNumber, serverName, setTableNumber, setServerName } = useOrder();
 
-  const total = items.reduce((sum, item) => sum + Number(item.menuItem.price) * item.quantity, 0);
+  const total = useMemo(
+    () => items.reduce((sum, item) => sum + Number(item.menuItem.price) * item.quantity, 0),
+    [items]
+  );
 
   return (
     <div className="flex flex-col h-full">
