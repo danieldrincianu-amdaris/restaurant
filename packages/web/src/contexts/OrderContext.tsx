@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { MenuItem } from '@restaurant/shared';
+import { MenuItem, Order } from '@restaurant/shared';
 
 interface OrderItem {
+  id?: string; // Add ID for existing items
   menuItemId: string;
   menuItem: MenuItem;
   quantity: number;
@@ -12,6 +13,9 @@ interface OrderContextState {
   items: OrderItem[];
   tableNumber: number | null;
   serverName: string;
+  orderId: string | null;
+  isEditMode: boolean;
+  originalItems: OrderItem[];
 }
 
 interface OrderContextActions {
@@ -22,6 +26,7 @@ interface OrderContextActions {
   setTableNumber: (tableNumber: number | null) => void;
   setServerName: (serverName: string) => void;
   clearOrder: () => void;
+  loadExistingOrder: (order: Order) => void;
 }
 
 type OrderContextValue = OrderContextState & OrderContextActions;
@@ -36,6 +41,8 @@ export function OrderProvider({ children }: OrderProviderProps) {
   const [items, setItems] = useState<OrderItem[]>([]);
   const [tableNumber, setTableNumber] = useState<number | null>(null);
   const [serverName, setServerName] = useState<string>('');
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [originalItems, setOriginalItems] = useState<OrderItem[]>([]);
 
   const addItem = (item: MenuItem) => {
     setItems((prevItems) => {
@@ -94,12 +101,37 @@ export function OrderProvider({ children }: OrderProviderProps) {
     setItems([]);
     setTableNumber(null);
     setServerName('');
+    setOrderId(null);
+    setOriginalItems([]);
   };
+
+  const loadExistingOrder = (order: Order) => {
+    setOrderId(order.id);
+    setTableNumber(order.tableNumber);
+    setServerName(order.serverName);
+
+    // Convert Order items to OrderContext items
+    const contextItems: OrderItem[] = order.items.map((item) => ({
+      id: item.id,
+      menuItemId: item.menuItemId,
+      menuItem: item.menuItem!,
+      quantity: item.quantity,
+      specialInstructions: item.specialInstructions,
+    }));
+
+    setItems(contextItems);
+    setOriginalItems(contextItems);
+  };
+
+  const isEditMode = orderId !== null;
 
   const value: OrderContextValue = {
     items,
     tableNumber,
     serverName,
+    orderId,
+    isEditMode,
+    originalItems,
     addItem,
     removeItem,
     updateQuantity,
@@ -107,6 +139,7 @@ export function OrderProvider({ children }: OrderProviderProps) {
     setTableNumber,
     setServerName,
     clearOrder,
+    loadExistingOrder,
   };
 
   return (

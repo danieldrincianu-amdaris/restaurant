@@ -20,7 +20,7 @@ function OrderItemRow({ item }: OrderItemRowProps) {
   const [showInstructionsModal, setShowInstructionsModal] = useState(false);
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
-  const price = Number(item.menuItem.price);
+  const price = item.menuItem ? Number(item.menuItem.price) : 0;
   const subtotal = price * item.quantity;
 
   const handleQuantityChange = (delta: number) => {
@@ -47,7 +47,9 @@ function OrderItemRow({ item }: OrderItemRowProps) {
       <div className="bg-gray-50 rounded-lg p-3">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0 pr-3">
-            <h3 className="font-medium text-gray-900 truncate">{item.menuItem.name}</h3>
+            <h3 className="font-medium text-gray-900 truncate">
+              {item.menuItem?.name || 'Unknown Item'}
+            </h3>
             <p className="text-sm text-gray-600">${price.toFixed(2)} each</p>
           </div>
           <div className="text-right">
@@ -107,7 +109,7 @@ function OrderItemRow({ item }: OrderItemRowProps) {
       {/* Special Instructions Modal */}
       <SpecialInstructionsModal
         isOpen={showInstructionsModal}
-        itemName={item.menuItem.name}
+        itemName={item.menuItem?.name || 'Unknown Item'}
         currentInstructions={item.specialInstructions}
         onSave={handleInstructionsSave}
         onClose={() => setShowInstructionsModal(false)}

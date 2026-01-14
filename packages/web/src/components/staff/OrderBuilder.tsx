@@ -2,41 +2,126 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrder } from '../../contexts/OrderContext';
 import { useCreateOrder } from '../../hooks/useCreateOrder';
+import { useUpdateOrder } from '../../hooks/useUpdateOrder';
 import { useToast } from '../../contexts/ToastContext';
 import OrderItemRow from './OrderItemRow';
 import ConfirmDialog from '../ui/ConfirmDialog';
 
 function OrderBuilder() {
-  const { items, tableNumber, serverName, setTableNumber, setServerName, clearOrder } = useOrder();
-  const { createOrder, isSubmitting } = useCreateOrder();
+  const {
+    items,
+    tableNumber,
+    serverName,
+    orderId,
+    isEditMode,
+    originalItems,
+    setTableNumber,
+    setServerName,
+    clearOrder,
+  } = useOrder();
+  const { createOrder, isSubmitting: isCreating } = useCreateOrder();
+  const { updateOrder, addOrderItem, updateOrderItem, removeOrderItem, isUpdating } =
+    useUpdateOrder();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
+  const isSubmitting = isCreating || isUpdating;
+
   const total = useMemo(
-    () => items.reduce((sum, item) => sum + Number(item.menuItem.price) * item.quantity, 0),
+    () => items.reduce((sum, item) => sum + (item.menuItem ? Number(item.menuItem.price) * item.quantity : 0), 0),
     [items]
   );
 
   const canSubmit = items.length > 0 && tableNumber !== null && serverName.trim() !== '';
 
+  // Detect changes for edit mode
+  const hasChanges = useMemo(() => {
+    if (!isEditMode) return false;
+
+    // Check if items have changed
+    if (items.length !== originalItems.length) return true;
+
+    // Check each item for differences
+    return items.some((item) => {
+      const original = originalItems.find((o) => o.id === item.id);
+      if (!original) return true; // New item
+      return (
+        original.quantity !== item.quantity ||
+        original.specialInstructions !== item.specialInstructions
+      );
+    });
+  }, [isEditMode, items, originalItems]);
+
   const handleSubmit = async () => {
     if (!canSubmit) return;
 
     try {
-      const order = await createOrder({
-        tableNumber: tableNumber!,
-        serverName,
-        items: items.map(item => ({
-          menuItemId: item.menuItemId,
-          quantity: item.quantity,
-          specialInstructions: item.specialInstructions || undefined,
-        })),
-      });
+      if (isEditMode && orderId) {
+        // Edit mode: Calculate changes and apply them
+        const addedItems = items.filter(
+          (item) => !originalItems.some((o) => o.id === item.id)
+        );
+        const removedItems = originalItems.filter(
+          (original) => !items.some((i) => i.id === original.id)
+        );
+        const modifiedItems = items.filter((item) => {
+          const original = originalItems.find((o) => o.id === item.id);
+          return (
+            original &&
+            (original.quantity !== item.quantity ||
+              original.specialInstructions !== item.specialInstructions)
+          );
+        });
 
-      showToast(`Order #${order.id} submitted to kitchen`, 'success');
-      clearOrder();
-      navigate('/staff/orders');
+        // Apply changes
+        for (const item of addedItems) {
+          await addOrderItem(orderId, {
+            menuItemId: item.menuItemId,
+            quantity: item.quantity,
+            specialInstructions: item.specialInstructions || undefined,
+          });
+        }
+
+        for (const item of modifiedItems) {
+          if (item.id) {
+            await updateOrderItem(orderId, item.id, {
+              quantity: item.quantity,
+              specialInstructions: item.specialInstructions || undefined,
+            });
+          }
+        }
+
+        for (const item of removedItems) {
+          if (item.id) {
+            await removeOrderItem(orderId, item.id);
+          }
+        }
+
+        // Update order metadata
+        await updateOrder(orderId, {
+          tableNumber: tableNumber!,
+          serverName,
+        });
+
+        showToast(`Order #${orderId.slice(-6)} updated`, 'success');
+        navigate('/staff/orders');
+      } else {
+        // Create mode: Submit new order
+        const order = await createOrder({
+          tableNumber: tableNumber!,
+          serverName,
+          items: items.map((item) => ({
+            menuItemId: item.menuItemId,
+            quantity: item.quantity,
+            specialInstructions: item.specialInstructions || undefined,
+          })),
+        });
+
+        showToast(`Order #${order.id.slice(-6)} submitted to kitchen`, 'success');
+        clearOrder();
+        navigate('/staff/orders');
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to submit order';
       showToast(errorMessage, 'error');
@@ -60,7 +145,9 @@ function OrderBuilder() {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="border-b border-gray-200 pb-4 mb-4">
-        <h2 className="text-xl font-bold mb-4">Order #NEW</h2>
+        <h2 className="text-xl font-bold mb-4">
+          {isEditMode ? `Order #${orderId?.slice(-6)}` : 'Order #NEW'}
+        </h2>
         
         {/* Table Number and Server Name Inputs */}
         <div className="grid grid-cols-2 gap-3">
@@ -134,11 +221,23 @@ function OrderBuilder() {
         </button>
         <button
           onClick={handleSubmit}
-          disabled={!canSubmit || isSubmitting}
-          title={!canSubmit ? 'Enter table number, server name, and add at least one item' : ''}
+          disabled={!canSubmit || isSubmitting || (isEditMode && !hasChanges)}
+          title={
+            !canSubmit
+              ? 'Enter table number, server name, and add at least one item'
+              : isEditMode && !hasChanges
+                ? 'No changes to save'
+                : ''
+          }
           className="flex-1 px-4 py-3 min-h-[44px] bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-600"
         >
-          {isSubmitting ? 'Submitting...' : 'Submit Order ▶'}
+          {isSubmitting
+            ? isEditMode
+              ? 'Saving...'
+              : 'Submitting...'
+            : isEditMode
+              ? 'Save Changes ✓'
+              : 'Submit Order ▶'}
         </button>
       </div>
 
@@ -150,7 +249,7 @@ function OrderBuilder() {
         confirmLabel="Clear"
         onConfirm={confirmClear}
         onCancel={() => setShowClearConfirm(false)}
-        variant="danger"
+        variant="destructive"
       />
     </div>
   );
