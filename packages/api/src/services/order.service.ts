@@ -1,8 +1,10 @@
 import { PrismaClient } from '@prisma/client';
+import { Server as SocketIOServer } from 'socket.io';
 import { CreateOrderInput, UpdateOrderInput } from '../schemas/order.schema.js';
 import { AddOrderItemInput, UpdateOrderItemInput } from '../schemas/order-item.schema.js';
 import { UpdateStatusInput, STATUS_TRANSITIONS } from '../schemas/order-status.schema.js';
 import { AppError, invalidStatusTransition } from '../utils/errors.js';
+import { SOCKET_EVENTS } from '@restaurant/shared';
 
 export interface OrderFilters {
   status?: string;
@@ -19,7 +21,10 @@ const orderWithItems = {
 };
 
 export class OrderService {
-  constructor(private prisma: PrismaClient) {}
+  constructor(
+    private prisma: PrismaClient,
+    private io: SocketIOServer
+  ) {}
 
   async getAllOrders(filters?: OrderFilters) {
     const where: Record<string, unknown> = {};
@@ -47,7 +52,7 @@ export class OrderService {
   }
 
   async createOrder(data: CreateOrderInput) {
-    return this.prisma.order.create({
+    const order = await this.prisma.order.create({
       data: {
         tableNumber: data.tableNumber,
         serverName: data.serverName,
@@ -55,6 +60,15 @@ export class OrderService {
       },
       include: orderWithItems,
     });
+
+    // Emit order:created event
+    try {
+      this.io.to('kitchen').to('orders').emit(SOCKET_EVENTS.ORDER_CREATED, { order });
+    } catch (error) {
+      console.error('Failed to emit ORDER_CREATED:', error);
+    }
+
+    return order;
   }
 
   async updateOrder(id: string, data: UpdateOrderInput) {
@@ -63,11 +77,24 @@ export class OrderService {
       return null;
     }
 
-    return this.prisma.order.update({
+    const order = await this.prisma.order.update({
       where: { id },
       data,
       include: orderWithItems,
     });
+
+    // Emit order:updated event
+    try {
+      const changedFields = Object.keys(data);
+      this.io.to('kitchen').to('orders').emit(SOCKET_EVENTS.ORDER_UPDATED, { 
+        order, 
+        changedFields 
+      });
+    } catch (error) {
+      console.error('Failed to emit ORDER_UPDATED:', error);
+    }
+
+    return order;
   }
 
   async deleteOrder(id: string) {
@@ -76,10 +103,19 @@ export class OrderService {
       return null;
     }
 
-    return this.prisma.order.delete({
+    const order = await this.prisma.order.delete({
       where: { id },
       include: orderWithItems,
     });
+
+    // Emit order:deleted event
+    try {
+      this.io.to('kitchen').to('orders').emit(SOCKET_EVENTS.ORDER_DELETED, { orderId: id });
+    } catch (error) {
+      console.error('Failed to emit ORDER_DELETED:', error);
+    }
+
+    return order;
   }
 
   async addOrderItem(orderId: string, data: AddOrderItemInput) {
@@ -111,14 +147,27 @@ export class OrderService {
     }
 
     // Create order item
-    await this.prisma.orderItem.create({
+    const createdItem = await this.prisma.orderItem.create({
       data: {
         orderId,
         menuItemId: data.menuItemId,
         quantity: data.quantity,
         specialInstructions: data.specialInstructions,
       },
+      include: {
+        menuItem: true,
+      },
     });
+
+    // Emit order-item:added event
+    try {
+      this.io.to('kitchen').to('orders').emit(SOCKET_EVENTS.ORDER_ITEM_ADDED, {
+        orderId,
+        item: createdItem,
+      });
+    } catch (error) {
+      console.error('Failed to emit ORDER_ITEM_ADDED:', error);
+    }
 
     // Return full order with items
     return this.prisma.order.findUnique({
@@ -144,10 +193,23 @@ export class OrderService {
     }
 
     // Update order item
-    await this.prisma.orderItem.update({
+    const updatedItem = await this.prisma.orderItem.update({
       where: { id: itemId },
       data,
+      include: {
+        menuItem: true,
+      },
     });
+
+    // Emit order-item:updated event
+    try {
+      this.io.to('kitchen').to('orders').emit(SOCKET_EVENTS.ORDER_ITEM_UPDATED, {
+        orderId,
+        item: updatedItem,
+      });
+    } catch (error) {
+      console.error('Failed to emit ORDER_ITEM_UPDATED:', error);
+    }
 
     // Return full order with items
     return this.prisma.order.findUnique({
@@ -177,6 +239,16 @@ export class OrderService {
       where: { id: itemId },
     });
 
+    // Emit order-item:removed event
+    try {
+      this.io.to('kitchen').to('orders').emit(SOCKET_EVENTS.ORDER_ITEM_REMOVED, {
+        orderId,
+        itemId,
+      });
+    } catch (error) {
+      console.error('Failed to emit ORDER_ITEM_REMOVED:', error);
+    }
+
     // Return full order with remaining items
     return this.prisma.order.findUnique({
       where: { id: orderId },
@@ -202,10 +274,24 @@ export class OrderService {
     }
 
     // Update order status (Prisma auto-updates updatedAt)
-    return this.prisma.order.update({
+    const updatedOrder = await this.prisma.order.update({
       where: { id },
       data: { status: newStatus },
       include: orderWithItems,
     });
+
+    // Emit order:status-changed event
+    try {
+      this.io.to('kitchen').to('orders').emit(SOCKET_EVENTS.ORDER_STATUS_CHANGED, {
+        orderId: id,
+        previousStatus: currentStatus,
+        newStatus: newStatus,
+        updatedAt: updatedOrder.updatedAt.toISOString(),
+      });
+    } catch (error) {
+      console.error('Failed to emit ORDER_STATUS_CHANGED:', error);
+    }
+
+    return updatedOrder;
   }
 }

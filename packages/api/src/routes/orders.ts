@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { Server as SocketIOServer } from 'socket.io';
 import { OrderService } from '../services/order.service.js';
 import { createOrderSchema, updateOrderSchema } from '../schemas/order.schema.js';
 import { addOrderItemSchema, updateOrderItemSchema } from '../schemas/order-item.schema.js';
@@ -7,9 +8,9 @@ import { updateStatusSchema } from '../schemas/order-status.schema.js';
 import { notFound } from '../utils/errors.js';
 import { sendSuccess } from '../utils/response.js';
 
-export function createOrderRoutes(prisma: PrismaClient): Router {
+export function createOrderRoutes(prisma: PrismaClient, io: SocketIOServer): Router {
   const router = Router();
-  const orderService = new OrderService(prisma);
+  const orderService = new OrderService(prisma, io);
 
   // GET /api/orders - List all orders with optional filters
   router.get('/', async (req: Request, res: Response, next: NextFunction) => {

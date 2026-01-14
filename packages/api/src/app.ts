@@ -17,17 +17,17 @@ export function createApp(prisma: PrismaClient, httpServer: HTTPServer): { app: 
   app.use(express.json());
   app.use('/uploads', express.static('uploads'));
 
-  // Routes
-  app.use('/api', createRoutes(prisma));
-
-  // Error handling (must be last)
-  app.use(errorHandler);
-
-  // Setup Socket.io server
+  // Setup Socket.io server first (needed by routes)
   const io = setupSocketServer(httpServer);
   
   // Setup Socket.io event handlers
   setupSocketHandlers(io);
+
+  // Routes (now io is available)
+  app.use('/api', createRoutes(prisma, io));
+
+  // Error handling (must be last)
+  app.use(errorHandler);
 
   return { app, io };
 }

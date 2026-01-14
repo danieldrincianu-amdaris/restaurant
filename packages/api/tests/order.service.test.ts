@@ -5,6 +5,8 @@ describe('OrderService', () => {
   let orderService: OrderService;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockPrisma: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let mockIo: any;
 
   const mockOrderWithItems = {
     items: {
@@ -33,7 +35,14 @@ describe('OrderService', () => {
         delete: vi.fn(),
       },
     };
-    orderService = new OrderService(mockPrisma);
+
+    // Mock Socket.io server
+    mockIo = {
+      to: vi.fn().mockReturnThis(),
+      emit: vi.fn(),
+    };
+
+    orderService = new OrderService(mockPrisma, mockIo);
   });
 
   describe('getAllOrders', () => {
@@ -210,15 +219,21 @@ describe('OrderService', () => {
     it('should add item to order successfully', async () => {
       const mockOrder = { id: 'order1', tableNumber: 5 };
       const mockMenuItem = { id: 'menu1', name: 'Pizza', available: true };
+      const mockCreatedItem = {
+        id: 'item1',
+        menuItemId: 'menu1',
+        quantity: 2,
+        menuItem: mockMenuItem,
+      };
       const mockOrderWithItem = {
         id: 'order1',
         tableNumber: 5,
-        items: [{ id: 'item1', menuItemId: 'menu1', quantity: 2 }],
+        items: [mockCreatedItem],
       };
 
       mockPrisma.order.findUnique.mockResolvedValueOnce(mockOrder);
       mockPrisma.menuItem.findUnique.mockResolvedValue(mockMenuItem);
-      mockPrisma.orderItem.create.mockResolvedValue({ id: 'item1' });
+      mockPrisma.orderItem.create.mockResolvedValue(mockCreatedItem);
       mockPrisma.order.findUnique.mockResolvedValueOnce(mockOrderWithItem);
 
       const result = await orderService.addOrderItem('order1', {
@@ -235,7 +250,13 @@ describe('OrderService', () => {
           quantity: 2,
           specialInstructions: 'No olives',
         },
+        include: {
+          menuItem: true,
+        },
       });
+      // Verify emit was called
+      expect(mockIo.to).toHaveBeenCalledWith('kitchen');
+      expect(mockIo.emit).toHaveBeenCalled();
     });
 
     it('should return null when order not found', async () => {
@@ -280,14 +301,21 @@ describe('OrderService', () => {
     it('should update order item successfully', async () => {
       const mockOrder = { id: 'order1' };
       const mockOrderItem = { id: 'item1', orderId: 'order1', quantity: 2 };
+      const mockMenuItem = { id: 'menu1', name: 'Pizza' };
+      const mockUpdatedItem = {
+        id: 'item1',
+        quantity: 3,
+        specialInstructions: 'Extra cheese',
+        menuItem: mockMenuItem,
+      };
       const mockUpdatedOrder = {
         id: 'order1',
-        items: [{ id: 'item1', quantity: 3, specialInstructions: 'Extra cheese' }],
+        items: [mockUpdatedItem],
       };
 
       mockPrisma.order.findUnique.mockResolvedValueOnce(mockOrder);
       mockPrisma.orderItem.findUnique.mockResolvedValue(mockOrderItem);
-      mockPrisma.orderItem.update.mockResolvedValue({ ...mockOrderItem, quantity: 3 });
+      mockPrisma.orderItem.update.mockResolvedValue(mockUpdatedItem);
       mockPrisma.order.findUnique.mockResolvedValueOnce(mockUpdatedOrder);
 
       const result = await orderService.updateOrderItem('order1', 'item1', {
@@ -299,7 +327,13 @@ describe('OrderService', () => {
       expect(mockPrisma.orderItem.update).toHaveBeenCalledWith({
         where: { id: 'item1' },
         data: { quantity: 3, specialInstructions: 'Extra cheese' },
+        include: {
+          menuItem: true,
+        },
       });
+      // Verify emit was called
+      expect(mockIo.to).toHaveBeenCalledWith('kitchen');
+      expect(mockIo.emit).toHaveBeenCalled();
     });
 
     it('should return null when order not found', async () => {
@@ -412,7 +446,12 @@ describe('OrderService', () => {
 
     it('should update status for valid transition PENDING to CANCELED', async () => {
       const mockOrder = { id: 'order1', status: 'PENDING' };
-      const mockUpdatedOrder = { id: 'order1', status: 'CANCELED', items: [] };
+      const mockUpdatedOrder = {
+        id: 'order1',
+        status: 'CANCELED',
+        updatedAt: new Date(),
+        items: [],
+      };
 
       mockPrisma.order.findUnique.mockResolvedValue(mockOrder);
       mockPrisma.order.update.mockResolvedValue(mockUpdatedOrder);
@@ -420,11 +459,18 @@ describe('OrderService', () => {
       const result = await orderService.updateOrderStatus('order1', { status: 'CANCELED' });
 
       expect(result).toEqual(mockUpdatedOrder);
+      expect(mockIo.to).toHaveBeenCalledWith('kitchen');
+      expect(mockIo.emit).toHaveBeenCalled();
     });
 
     it('should update status for valid transition IN_PROGRESS to COMPLETED', async () => {
       const mockOrder = { id: 'order1', status: 'IN_PROGRESS' };
-      const mockUpdatedOrder = { id: 'order1', status: 'COMPLETED', items: [] };
+      const mockUpdatedOrder = {
+        id: 'order1',
+        status: 'COMPLETED',
+        updatedAt: new Date(),
+        items: [],
+      };
 
       mockPrisma.order.findUnique.mockResolvedValue(mockOrder);
       mockPrisma.order.update.mockResolvedValue(mockUpdatedOrder);
@@ -432,11 +478,18 @@ describe('OrderService', () => {
       const result = await orderService.updateOrderStatus('order1', { status: 'COMPLETED' });
 
       expect(result).toEqual(mockUpdatedOrder);
+      expect(mockIo.to).toHaveBeenCalledWith('kitchen');
+      expect(mockIo.emit).toHaveBeenCalled();
     });
 
     it('should update status for valid transition IN_PROGRESS to HALTED', async () => {
       const mockOrder = { id: 'order1', status: 'IN_PROGRESS' };
-      const mockUpdatedOrder = { id: 'order1', status: 'HALTED', items: [] };
+      const mockUpdatedOrder = {
+        id: 'order1',
+        status: 'HALTED',
+        updatedAt: new Date(),
+        items: [],
+      };
 
       mockPrisma.order.findUnique.mockResolvedValue(mockOrder);
       mockPrisma.order.update.mockResolvedValue(mockUpdatedOrder);
@@ -444,11 +497,18 @@ describe('OrderService', () => {
       const result = await orderService.updateOrderStatus('order1', { status: 'HALTED' });
 
       expect(result).toEqual(mockUpdatedOrder);
+      expect(mockIo.to).toHaveBeenCalledWith('kitchen');
+      expect(mockIo.emit).toHaveBeenCalled();
     });
 
     it('should update status for valid transition HALTED to IN_PROGRESS', async () => {
       const mockOrder = { id: 'order1', status: 'HALTED' };
-      const mockUpdatedOrder = { id: 'order1', status: 'IN_PROGRESS', items: [] };
+      const mockUpdatedOrder = {
+        id: 'order1',
+        status: 'IN_PROGRESS',
+        updatedAt: new Date(),
+        items: [],
+      };
 
       mockPrisma.order.findUnique.mockResolvedValue(mockOrder);
       mockPrisma.order.update.mockResolvedValue(mockUpdatedOrder);
@@ -456,6 +516,8 @@ describe('OrderService', () => {
       const result = await orderService.updateOrderStatus('order1', { status: 'IN_PROGRESS' });
 
       expect(result).toEqual(mockUpdatedOrder);
+      expect(mockIo.to).toHaveBeenCalledWith('kitchen');
+      expect(mockIo.emit).toHaveBeenCalled();
     });
 
     it('should throw error for invalid transition COMPLETED to IN_PROGRESS', async () => {
