@@ -118,7 +118,7 @@ function OrderBuilder() {
           })),
         });
 
-        showToast(`Order #${order.id.slice(-6)} submitted to kitchen`, 'success');
+        showToast(`Order #${order.id} submitted to kitchen`, 'success');
         clearOrder();
         navigate('/staff/orders');
       }

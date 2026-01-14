@@ -93,11 +93,13 @@ const menuItems = [
 async function main() {
   console.log('Seeding database...');
   
-  // Clear existing data
-  console.log('Clearing existing data...');
-  await prisma.orderItem.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.menuItem.deleteMany();
+  // Check if database already has data
+  const existingMenuItems = await prisma.menuItem.count();
+  if (existingMenuItems > 0) {
+    console.log(`⚠️  Database already has ${existingMenuItems} menu items. Skipping seed to preserve data.`);
+    console.log('   To force re-seed, manually delete data first or run: pnpm prisma migrate reset');
+    return;
+  }
   
   // Seed menu items
   console.log('Creating menu items...');

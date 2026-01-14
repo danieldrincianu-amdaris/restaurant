@@ -4,6 +4,11 @@ import { OrderStatus } from '@prisma/client';
 export const createOrderSchema = z.object({
   tableNumber: z.number().int().positive('Table number must be a positive integer'),
   serverName: z.string().min(1, 'Server name is required'),
+  items: z.array(z.object({
+    menuItemId: z.string(),
+    quantity: z.number().int().positive(),
+    specialInstructions: z.string().optional(),
+  })).optional(),
 });
 
 export const updateOrderSchema = z.object({

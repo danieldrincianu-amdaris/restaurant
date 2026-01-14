@@ -57,6 +57,13 @@ export class OrderService {
         tableNumber: data.tableNumber,
         serverName: data.serverName,
         status: 'PENDING',
+        items: data.items ? {
+          create: data.items.map(item => ({
+            menuItemId: item.menuItemId,
+            quantity: item.quantity,
+            specialInstructions: item.specialInstructions,
+          })),
+        } : undefined,
       },
       include: orderWithItems,
     });

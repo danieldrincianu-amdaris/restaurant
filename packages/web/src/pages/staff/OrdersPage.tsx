@@ -1,7 +1,8 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { OrderStatus } from '@restaurant/shared';
 import { useOrders } from '../../hooks/useOrders';
+import { useOrderEvents } from '../../hooks/useOrderEvents';
 import OrderCard from '../../components/staff/OrderCard';
 
 function OrdersPage() {
@@ -16,6 +17,19 @@ function OrdersPage() {
     const savedServer = localStorage.getItem('lastServerName') || '';
     setCurrentServer(savedServer);
   }, []);
+
+  // Subscribe to real-time order events
+  const handleOrderUpdate = useCallback(() => {
+    refresh();
+  }, [refresh]);
+
+  useOrderEvents({
+    room: 'orders',
+    onCreate: handleOrderUpdate,
+    onUpdate: handleOrderUpdate,
+    onDelete: handleOrderUpdate,
+    onStatusChange: handleOrderUpdate,
+  });
 
   // Filter active orders (exclude COMPLETED and CANCELED)
   const activeOrders = useMemo(() => {
