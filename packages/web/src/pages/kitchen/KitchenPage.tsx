@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ConnectionStatus } from '../../components/ui/ConnectionStatus';
 import KitchenBoard from '../../components/kitchen/KitchenBoard';
+import { useSoundPreference } from '../../hooks/useSoundPreference';
 
 /**
  * KitchenPage - Full-screen kitchen display board
@@ -10,6 +11,7 @@ import KitchenBoard from '../../components/kitchen/KitchenBoard';
  */
 export default function KitchenPage() {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const { isMuted, toggleMute } = useSoundPreference();
 
   // Update time display every minute
   useEffect(() => {
@@ -38,12 +40,14 @@ export default function KitchenPage() {
         </div>
         
         <div className="flex items-center gap-4">
-          {/* Mute toggle placeholder - will be implemented in Story 3.8 */}
+          {/* Mute/unmute toggle button */}
           <button
+            onClick={toggleMute}
             className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
-            aria-label="Mute notifications"
+            aria-label={isMuted ? 'Sound off - Click to unmute' : 'Sound on - Click to mute'}
+            title={isMuted ? 'Sound off' : 'Sound on'}
           >
-            🔔
+            {isMuted ? '🔕' : '🔔'}
           </button>
           
           <ConnectionStatus />
@@ -56,7 +60,7 @@ export default function KitchenPage() {
 
       {/* Kitchen Board - fills remaining viewport height */}
       <main className="flex-1 overflow-hidden">
-        <KitchenBoard />
+        <KitchenBoard isMuted={isMuted} />
       </main>
     </div>
   );

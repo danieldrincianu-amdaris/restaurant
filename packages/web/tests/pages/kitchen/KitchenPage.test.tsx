@@ -13,6 +13,14 @@ vi.mock('../../../src/components/ui/ConnectionStatus', () => ({
   ConnectionStatus: () => <div data-testid="connection-status">Connected</div>,
 }));
 
+// Mock sound preference hook
+vi.mock('../../../src/hooks/useSoundPreference', () => ({
+  useSoundPreference: vi.fn(() => ({
+    isMuted: false,
+    toggleMute: vi.fn(),
+  })),
+}));
+
 describe('KitchenPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -56,7 +64,7 @@ describe('KitchenPage', () => {
       </MemoryRouter>
     );
 
-    const muteButton = screen.getByLabelText('Mute notifications');
+    const muteButton = screen.getByLabelText('Sound on - Click to mute');
     expect(muteButton).toBeInTheDocument();
     expect(muteButton).toHaveTextContent('🔔');
   });

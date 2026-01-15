@@ -68,6 +68,15 @@ h3 {
   }
 }
 
+@keyframes column-flash {
+  0%, 100% {
+    background-color: inherit;
+  }
+  50% {
+    background-color: rgba(59, 130, 246, 0.2); /* blue-500 with opacity */
+  }
+}
+
 .animate-pulse-new-order {
   animation: pulse-new-order 1500ms ease-in-out 3;
 }
@@ -76,10 +85,15 @@ h3 {
   animation: status-change-flash 500ms ease-in-out;
 }
 
+.animate-column-flash {
+  animation: column-flash 500ms ease-in-out;
+}
+
 /* Respect prefers-reduced-motion */
 @media (prefers-reduced-motion: reduce) {
   .animate-pulse-new-order,
   .animate-status-change,
+  .animate-column-flash,
   .animate-fade-in,
   .animate-scale-in {
     animation: none !important;

@@ -13,6 +13,19 @@ vi.mock('../../../src/hooks/useOrderEvents', () => ({
   useOrderEvents: vi.fn(),
 }));
 
+vi.mock('../../../src/hooks/useNotificationSound', () => ({
+  useNotificationSound: vi.fn(() => ({
+    play: vi.fn(),
+  })),
+}));
+
+vi.mock('../../../src/hooks/useBrowserNotification', () => ({
+  useBrowserNotification: vi.fn(() => ({
+    requestPermission: vi.fn(),
+    showNotification: vi.fn(),
+  })),
+}));
+
 // Mock StatusColumn component
 vi.mock('../../../src/components/kitchen/StatusColumn', () => ({
   default: ({ status, orders }: { status: OrderStatus; orders: Order[] }) => (

@@ -16,6 +16,19 @@ vi.mock('../../../src/lib/api', () => ({
   },
 }));
 
+vi.mock('../../../src/hooks/useNotificationSound', () => ({
+  useNotificationSound: vi.fn(() => ({
+    play: vi.fn(),
+  })),
+}));
+
+vi.mock('../../../src/hooks/useBrowserNotification', () => ({
+  useBrowserNotification: vi.fn(() => ({
+    requestPermission: vi.fn(),
+    showNotification: vi.fn(),
+  })),
+}));
+
 // Mock framer-motion to avoid animation issues in tests
 vi.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,

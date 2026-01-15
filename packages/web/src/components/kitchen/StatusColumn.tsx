@@ -6,6 +6,7 @@ interface StatusColumnProps {
   status: OrderStatus;
   orders: Order[];
   newOrderIds?: Set<string>;
+  isFlashing?: boolean;
 }
 
 const statusConfig = {
@@ -52,14 +53,14 @@ const statusConfig = {
  * Displays orders for a specific status with header showing count
  * and scrollable order card area with entry/exit animations.
  */
-export default function StatusColumn({ status, orders, newOrderIds = new Set() }: StatusColumnProps) {
+export default function StatusColumn({ status, orders, newOrderIds = new Set(), isFlashing = false }: StatusColumnProps) {
   const config = statusConfig[status];
   const orderCount = orders.length;
 
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       {/* Column Header */}
-      <div className={`${config.bgColor} px-4 py-3 flex items-center justify-between`}>
+      <div className={`${config.bgColor} px-4 py-3 flex items-center justify-between ${isFlashing ? 'animate-column-flash' : ''}`}>
         <div className="flex items-center gap-2">
           <span className="text-lg">{config.icon}</span>
           <h2 className="text-white font-semibold text-lg">

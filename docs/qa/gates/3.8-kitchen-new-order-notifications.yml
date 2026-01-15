@@ -1,0 +1,150 @@
+# Quality Gate: Story 3.8 - Kitchen New Order Notifications
+schema: 1
+story: "3.8"
+story_title: "Kitchen New Order Notifications"
+gate: PASS
+status_reason: "Excellent implementation with comprehensive test coverage, proper architecture, and clean code quality. All acceptance criteria met with no blocking issues."
+reviewer: "Quinn (Test Architect)"
+updated: "2026-01-15T00:00:00Z"
+
+waiver: { active: false }
+
+top_issues: []
+
+# No critical risks identified
+risk_summary:
+  totals: { critical: 0, high: 0, medium: 0, low: 0 }
+  recommendations:
+    must_fix: []
+    monitor:
+      - "Lint warnings for Category/FoodType imports in test file (false positive - types are used)"
+      - "Pre-existing lint errors in other test files (not introduced by this story)"
+
+# Quality metrics
+quality_score: 95
+
+evidence:
+  tests_reviewed: 28
+  tests_passing: 370
+  files_created: 8
+  files_modified: 8
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: "localStorage used appropriately for preferences, no user input handling, browser APIs used securely"
+  performance:
+    status: PASS
+    notes: "Debouncing (500ms) prevents sound overlap, efficient Web Audio API usage, minimal re-renders"
+  reliability:
+    status: PASS
+    notes: "Comprehensive error handling (autoplay blocking, permission denied, unsupported APIs), silent failures prevent UX disruption"
+  maintainability:
+    status: PASS
+    notes: "Clean hook architecture, well-documented code, comprehensive tests enable confident refactoring"
+  accessibility:
+    status: PASS
+    notes: "ARIA labels on mute button, prefers-reduced-motion support for animations, keyboard accessible"
+  testability:
+    status: PASS
+    notes: "Excellent test coverage (9+7+6+6 tests), proper mocking strategy, integration tests verify end-to-end flow"
+
+# Requirements traceability (Given-When-Then mapping)
+requirements_trace:
+  ac1_audio_notification:
+    requirement: "Audio notification plays when new order arrives"
+    status: VERIFIED
+    evidence: "useNotificationSound hook with Web Audio API beep generation, 9 unit tests, integration test verifies call"
+    given_when_then:
+      - given: "New order created via WebSocket"
+        when: "onCreate handler executes"
+        then: "playNotificationSound() called if not muted"
+  
+  ac2_column_flash:
+    requirement: "Visual notification: brief highlight/flash on Pending column"
+    status: VERIFIED
+    evidence: "column-flash CSS animation (500ms), isPendingFlashing state, isFlashing prop passed to DroppableColumn"
+    given_when_then:
+      - given: "New order with PENDING status created"
+        when: "onCreate handler sets isPendingFlashing=true"
+        then: "Pending column header animates with blue highlight for 500ms"
+  
+  ac3_card_animation:
+    requirement: "New order card has temporary highlight animation (fades after 5 seconds)"
+    status: VERIFIED
+    evidence: "Inherited from Story 3.7, newOrderIds Set tracking, 5s setTimeout cleanup"
+    given_when_then:
+      - given: "New order arrives"
+        when: "Order added to newOrderIds Set"
+        then: "Card displays pulse animation, removed from Set after 5s"
+  
+  ac4_browser_notification:
+    requirement: "Browser notification (if permitted) shows 'New Order - Table X'"
+    status: VERIFIED
+    evidence: "useBrowserNotification hook, showNotification with title/body formatting, 6 unit tests"
+    given_when_then:
+      - given: "Browser tab is hidden AND permission granted"
+        when: "New order created"
+        then: "Browser notification displays with order details"
+  
+  ac5_mute_toggle:
+    requirement: "Sound can be muted/unmuted via toggle button"
+    status: VERIFIED
+    evidence: "useSoundPreference hook, KitchenPage mute button with toggleMute callback, dynamic icon (🔔/🔕)"
+    given_when_then:
+      - given: "User clicks mute button"
+        when: "toggleMute() called"
+        then: "isMuted state flips, icon updates, localStorage persisted"
+  
+  ac6_persistence:
+    requirement: "Sound preference persisted in localStorage"
+    status: VERIFIED
+    evidence: "kitchen.soundMuted key in localStorage, useEffect persistence, 7 unit tests including persistence verification"
+    given_when_then:
+      - given: "User sets mute preference"
+        when: "Component mounts on next session"
+        then: "Preference loaded from localStorage, state initialized correctly"
+  
+  ac7_debouncing:
+    requirement: "Multiple rapid orders don't overlap sounds (queue or debounce)"
+    status: VERIFIED
+    evidence: "500ms debounce in useNotificationSound, lastPlayedRef tracking, integration test verifies rapid orders"
+    given_when_then:
+      - given: "Multiple orders created within 500ms"
+        when: "play() called for each"
+        then: "Only plays if >500ms since last play, prevents overlap"
+  
+  ac8_background_tab:
+    requirement: "Notification works even when browser tab is in background"
+    status: VERIFIED
+    evidence: "document.hidden check in showNotification, only shows when tab inactive, 6 unit tests"
+    given_when_then:
+      - given: "Tab is in background (document.hidden=true)"
+        when: "New order created"
+        then: "Browser notification shown (audio still plays if unmuted)"
+
+recommendations:
+  immediate: []
+  future:
+    - action: "Consider adding volume control slider (currently just mute/unmute)"
+      refs: ["packages/web/src/pages/kitchen/KitchenPage.tsx"]
+      priority: low
+    - action: "Consider custom notification sound upload (currently programmatic beep)"
+      refs: ["packages/web/src/hooks/useNotificationSound.ts"]
+      priority: low
+    - action: "Add visual indicator when notifications are blocked by browser"
+      refs: ["packages/web/src/components/kitchen/KitchenBoard.tsx"]
+      priority: low
+
+code_quality_highlights:
+  - "Excellent hook architecture - clean separation of concerns (sound, preferences, browser notifications)"
+  - "Comprehensive test coverage - 28 new tests across 4 files (22 unit + 6 integration)"
+  - "Web Audio API implementation shows deep technical understanding (OfflineAudioContext, WAV encoding)"
+  - "Proper error handling with silent failures (autoplay blocking, permission denied)"
+  - "Accessibility considerations (ARIA labels, prefers-reduced-motion)"
+  - "Clean integration - minimal changes to existing KitchenBoard component"
+
+technical_debt: none

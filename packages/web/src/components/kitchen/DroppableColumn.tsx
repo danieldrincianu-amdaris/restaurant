@@ -8,6 +8,7 @@ interface DroppableColumnProps {
   status: OrderStatus;
   orders: Order[];
   newOrderIds?: Set<string>;
+  isFlashing?: boolean;
 }
 
 /**
@@ -17,7 +18,7 @@ interface DroppableColumnProps {
  * Provides visual feedback for valid/invalid drop targets based on
  * status transition rules.
  */
-export default function DroppableColumn({ status, orders, newOrderIds }: DroppableColumnProps) {
+export default function DroppableColumn({ status, orders, newOrderIds, isFlashing }: DroppableColumnProps) {
   const { activeOrderStatus } = useDndState();
   const { setNodeRef, isOver } = useDroppable({
     id: status,
@@ -48,7 +49,12 @@ export default function DroppableColumn({ status, orders, newOrderIds }: Droppab
 
   return (
     <div ref={setNodeRef} className={`h-full transition-all ${highlightClasses}`}>
-      <StatusColumn status={status} orders={orders} newOrderIds={newOrderIds} />
+      <StatusColumn 
+        status={status} 
+        orders={orders} 
+        newOrderIds={newOrderIds}
+        isFlashing={isFlashing}
+      />
     </div>
   );
 }

@@ -2,19 +2,25 @@ import { useEffect, useState } from 'react';
 import { Order, OrderStatus } from '@restaurant/shared';
 import { useOrders } from '../../hooks/useOrders';
 import { useOrderEvents } from '../../hooks/useOrderEvents';
+import { useNotificationSound } from '../../hooks/useNotificationSound';
+import { useBrowserNotification } from '../../hooks/useBrowserNotification';
 import { applyKitchenFilters } from '../../lib/orderFilters';
 import KitchenDndContext from './KitchenDndContext';
 import DroppableColumn from './DroppableColumn';
 import { api } from '../../lib/api';
+
+interface KitchenBoardProps {
+  isMuted?: boolean;
+}
 
 /**
  * KitchenBoard - Kanban-style board with 4 status columns
  * 
  * Displays orders organized by status (Pending, In Progress, Halted, Completed).
  * Responsive layout: 4-across on desktop, 2x2 on tablet portrait.
- * Real-time updates via WebSocket with animations.
+ * Real-time updates via WebSocket with animations and notifications.
  */
-export default function KitchenBoard() {
+export default function KitchenBoard({ isMuted = false }: KitchenBoardProps) {
   // Fetch initial orders
   const { orders: initialOrders, isLoading, error } = useOrders();
   
@@ -23,6 +29,25 @@ export default function KitchenBoard() {
   
   // Track new orders for pulse animation
   const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
+  
+  // Track pending column flash animation
+  const [isPendingFlashing, setIsPendingFlashing] = useState(false);
+  
+  // Notification hooks
+  const { play: playNotificationSound } = useNotificationSound('', isMuted);
+  const { requestPermission, showNotification } = useBrowserNotification();
+
+  // Request notification permission on first interaction
+  useEffect(() => {
+    const handleFirstClick = async () => {
+      await requestPermission();
+    };
+    document.addEventListener('click', handleFirstClick, { once: true });
+    
+    return () => {
+      document.removeEventListener('click', handleFirstClick);
+    };
+  }, [requestPermission]);
   
   // Show canceled toggle (persisted in localStorage)
   const [showCanceled, setShowCanceled] = useState(() => {
@@ -46,6 +71,22 @@ export default function KitchenBoard() {
         if (prev.some(o => o.id === order.id)) {
           return prev;
         }
+        
+        // Play audio notification (if not muted)
+        playNotificationSound();
+        
+        // Show browser notification (if tab is hidden)
+        showNotification(
+          `New Order - Table ${order.tableNumber}`,
+          `Order #${order.id.slice(0, 8)} - ${order.items.length} ${order.items.length === 1 ? 'item' : 'items'}`
+        );
+        
+        // Flash Pending column header
+        if (order.status === OrderStatus.PENDING) {
+          setIsPendingFlashing(true);
+          setTimeout(() => setIsPendingFlashing(false), 500);
+        }
+        
         // Mark as new for animation
         setNewOrderIds(ids => new Set([...ids, order.id]));
         // Remove from new set after 5 seconds
@@ -56,6 +97,7 @@ export default function KitchenBoard() {
             return updated;
           });
         }, 5000);
+        
         return [...prev, order];
       });
     },
@@ -216,6 +258,7 @@ export default function KitchenBoard() {
             status={OrderStatus.PENDING}
             orders={pendingOrders}
             newOrderIds={newOrderIds}
+            isFlashing={isPendingFlashing}
           />
           <DroppableColumn
             status={OrderStatus.IN_PROGRESS}
