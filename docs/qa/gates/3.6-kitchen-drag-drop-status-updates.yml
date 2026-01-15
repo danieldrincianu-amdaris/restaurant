@@ -1,0 +1,100 @@
+# Quality Gate: Story 3.6 - Kitchen Drag-and-Drop Status Updates
+
+schema: 1
+story: "3.6"
+story_title: "Kitchen Drag-and-Drop Status Updates"
+gate: "CONCERNS"
+status_reason: "Excellent implementation quality with strong test coverage, but accessibility gaps and missing error notifications prevent PASS. Recommend addressing before production."
+reviewer: "Quinn (Test Architect)"
+updated: "2026-01-15T22:30:00Z"
+
+waiver: { active: false }
+
+top_issues:
+  - id: "A11Y-001"
+    severity: medium
+    finding: "No aria-labels or screen reader announcements for drag operations"
+    suggested_action: "Add aria-label to draggable cards and aria-live region for status change announcements"
+  - id: "UX-001"
+    severity: medium
+    finding: "Error toast notification not implemented (TODO in KitchenBoard.tsx line 133)"
+    suggested_action: "Wire up toast context to display user-friendly error messages on failed status updates"
+  - id: "TEST-001"
+    severity: low
+    finding: "Integration tests deferred (Task 12) - no end-to-end drag flow testing"
+    suggested_action: "Add integration test with @testing-library/user-event or E2E test with Playwright"
+  - id: "TEST-002"
+    severity: low
+    finding: "Optimistic update/revert logic not explicitly tested"
+    suggested_action: "Add test verifying card reverts to original column on API failure"
+
+risk_summary:
+  totals: { critical: 0, high: 0, medium: 2, low: 2 }
+  recommendations:
+    must_fix:
+      - "Add error toast notification for production readiness"
+      - "Improve accessibility with aria-labels and announcements"
+    monitor:
+      - "Integration test coverage for drag flow"
+      - "Performance with many simultaneous drags (edge case)"
+
+quality_score: 80
+
+evidence:
+  tests_reviewed: 32
+  risks_identified: 4
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: "Client + server-side validation; no sensitive data in drag payload; existing auth middleware protects endpoints"
+  performance:
+    status: PASS
+    notes: "Optimistic updates <100ms perceived latency; efficient collision detection; minimal re-renders"
+  reliability:
+    status: CONCERNS
+    notes: "Error handling present with revert logic, but no user-visible error notification (console.error only)"
+  maintainability:
+    status: PASS
+    notes: "Clean architecture; JSDoc documentation; TypeScript type safety; well-maintained @dnd-kit library"
+  accessibility:
+    status: CONCERNS
+    notes: "Missing aria-labels; no screen reader announcements; keyboard support from @dnd-kit not tested; color-only visual feedback"
+
+recommendations:
+  immediate:
+    - action: "Add error toast notification integration"
+      refs: ["packages/web/src/components/kitchen/KitchenBoard.tsx#L133"]
+      owner: dev
+    - action: "Add aria-label='Drag to change order status' to DraggableOrderCard"
+      refs: ["packages/web/src/components/kitchen/DraggableOrderCard.tsx"]
+      owner: dev
+    - action: "Add aria-live region in KitchenBoard to announce status changes"
+      refs: ["packages/web/src/components/kitchen/KitchenBoard.tsx"]
+      owner: dev
+  future:
+    - action: "Extract optimistic update/revert pattern to useOptimisticMutation hook"
+      refs: ["packages/web/src/components/kitchen/KitchenBoard.tsx#L108-L135"]
+      owner: dev
+    - action: "Add integration test for complete drag-and-drop flow"
+      refs: ["packages/web/tests/components/kitchen/"]
+      owner: dev
+    - action: "Test keyboard drag support for accessibility validation"
+      refs: ["packages/web/tests/components/kitchen/"]
+      owner: qa
+    - action: "Extract visual feedback constants to design tokens"
+      refs: ["packages/web/src/components/kitchen/DroppableColumn.tsx#L38-L41"]
+      owner: dev
+
+strengths:
+  - "Excellent separation of concerns with clear component boundaries"
+  - "Comprehensive unit test coverage (23 tests for statusTransitions covering all combinations)"
+  - "Client-side validation matches backend rules (defense in depth)"
+  - "Proper optimistic update pattern with error reversion"
+  - "Touch-friendly sensor configuration (8px activation distance)"
+  - "Clean JSDoc documentation on all exported functions"
+  - "TypeScript type safety throughout implementation"
+  - "@dnd-kit library properly integrated following best practices"

@@ -1,5 +1,5 @@
 import { Order, OrderStatus } from '@restaurant/shared';
-import KitchenOrderCard from './KitchenOrderCard';
+import DraggableOrderCard from './DraggableOrderCard';
 
 interface StatusColumnProps {
   status: OrderStatus;
@@ -77,9 +77,9 @@ export default function StatusColumn({ status, orders }: StatusColumnProps) {
             <p className="text-sm">No orders</p>
           </div>
         ) : (
-          // Kitchen order cards with full details
+          // Kitchen order cards with full details (now draggable)
           orders.map((order) => (
-            <KitchenOrderCard
+            <DraggableOrderCard
               key={order.id}
               order={order}
               status={status}

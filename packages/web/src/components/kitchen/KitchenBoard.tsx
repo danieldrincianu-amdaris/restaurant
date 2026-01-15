@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Order, OrderStatus } from '@restaurant/shared';
-import StatusColumn from './StatusColumn';
 import { useOrders } from '../../hooks/useOrders';
 import { useOrderEvents } from '../../hooks/useOrderEvents';
 import { applyKitchenFilters } from '../../lib/orderFilters';
+import KitchenDndContext from './KitchenDndContext';
+import DroppableColumn from './DroppableColumn';
+import { api } from '../../lib/api';
 
 /**
  * KitchenBoard - Kanban-style board with 4 status columns
@@ -102,6 +104,37 @@ export default function KitchenBoard() {
   const haltedOrders = filteredOrders.filter(o => o.status === OrderStatus.HALTED);
   const completedOrders = filteredOrders.filter(o => o.status === OrderStatus.COMPLETED);
 
+  // Handle status change via drag-and-drop
+  const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+    // Find the order to get its current status
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    const originalStatus = order.status;
+
+    // Optimistic update - move card immediately
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId ? { ...o, status: newStatus, updatedAt: new Date().toISOString() } : o
+      )
+    );
+
+    try {
+      // API call to update status
+      await api.patch(`/orders/${orderId}/status`, { status: newStatus });
+      // Success - WebSocket will broadcast to other clients
+    } catch (error) {
+      // Revert on failure
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === orderId ? { ...o, status: originalStatus } : o
+        )
+      );
+      console.error('Failed to update order status:', error);
+      // TODO: Show error toast notification
+    }
+  };
+
   return (
     <div className="h-full p-4">
       {/* Show Canceled Toggle */}
@@ -119,24 +152,26 @@ export default function KitchenBoard() {
       </div>
 
       {/* 4-column grid: 4-across on desktop, 2x2 on tablet portrait */}
-      <div className="h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatusColumn
-          status={OrderStatus.PENDING}
-          orders={pendingOrders}
-        />
-        <StatusColumn
-          status={OrderStatus.IN_PROGRESS}
-          orders={inProgressOrders}
-        />
-        <StatusColumn
-          status={OrderStatus.HALTED}
-          orders={haltedOrders}
-        />
-        <StatusColumn
-          status={OrderStatus.COMPLETED}
-          orders={completedOrders}
-        />
-      </div>
+      <KitchenDndContext onStatusChange={handleStatusChange}>
+        <div className="h-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <DroppableColumn
+            status={OrderStatus.PENDING}
+            orders={pendingOrders}
+          />
+          <DroppableColumn
+            status={OrderStatus.IN_PROGRESS}
+            orders={inProgressOrders}
+          />
+          <DroppableColumn
+            status={OrderStatus.HALTED}
+            orders={haltedOrders}
+          />
+          <DroppableColumn
+            status={OrderStatus.COMPLETED}
+            orders={completedOrders}
+          />
+        </div>
+      </KitchenDndContext>
     </div>
   );
 }
