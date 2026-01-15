@@ -1,9 +1,11 @@
 import { Order, OrderStatus } from '@restaurant/shared';
+import { AnimatePresence, motion } from 'framer-motion';
 import DraggableOrderCard from './DraggableOrderCard';
 
 interface StatusColumnProps {
   status: OrderStatus;
   orders: Order[];
+  newOrderIds?: Set<string>;
 }
 
 const statusConfig = {
@@ -48,9 +50,9 @@ const statusConfig = {
  * StatusColumn - Single status column in kitchen kanban board
  * 
  * Displays orders for a specific status with header showing count
- * and scrollable order card area.
+ * and scrollable order card area with entry/exit animations.
  */
-export default function StatusColumn({ status, orders }: StatusColumnProps) {
+export default function StatusColumn({ status, orders, newOrderIds = new Set() }: StatusColumnProps) {
   const config = statusConfig[status];
   const orderCount = orders.length;
 
@@ -77,14 +79,28 @@ export default function StatusColumn({ status, orders }: StatusColumnProps) {
             <p className="text-sm">No orders</p>
           </div>
         ) : (
-          // Kitchen order cards with full details (now draggable)
-          orders.map((order) => (
-            <DraggableOrderCard
-              key={order.id}
-              order={order}
-              status={status}
-            />
-          ))
+          // Kitchen order cards with animations
+          <AnimatePresence mode="popLayout">
+            {orders.map((order) => (
+              <motion.div
+                key={order.id}
+                layout
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{
+                  duration: 0.3,
+                  ease: 'easeOut',
+                }}
+              >
+                <DraggableOrderCard
+                  order={order}
+                  status={status}
+                  isNew={newOrderIds.has(order.id)}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         )}
       </div>
     </div>

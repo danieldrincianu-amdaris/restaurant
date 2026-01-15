@@ -12,7 +12,7 @@ import { api } from '../../lib/api';
  * 
  * Displays orders organized by status (Pending, In Progress, Halted, Completed).
  * Responsive layout: 4-across on desktop, 2x2 on tablet portrait.
- * Real-time updates via WebSocket.
+ * Real-time updates via WebSocket with animations.
  */
 export default function KitchenBoard() {
   // Fetch initial orders
@@ -20,6 +20,9 @@ export default function KitchenBoard() {
   
   // Local state for orders (updated in real-time)
   const [orders, setOrders] = useState<Order[]>([]);
+  
+  // Track new orders for pulse animation
+  const [newOrderIds, setNewOrderIds] = useState<Set<string>>(new Set());
   
   // Show canceled toggle (persisted in localStorage)
   const [showCanceled, setShowCanceled] = useState(() => {
@@ -38,11 +41,34 @@ export default function KitchenBoard() {
   useOrderEvents({
     room: 'kitchen',
     onCreate: ({ order }) => {
-      setOrders((prev) => [...prev, order]);
+      setOrders((prev) => {
+        // Prevent duplicate: check if order already exists
+        if (prev.some(o => o.id === order.id)) {
+          return prev;
+        }
+        // Mark as new for animation
+        setNewOrderIds(ids => new Set([...ids, order.id]));
+        // Remove from new set after 5 seconds
+        setTimeout(() => {
+          setNewOrderIds(ids => {
+            const updated = new Set(ids);
+            updated.delete(order.id);
+            return updated;
+          });
+        }, 5000);
+        return [...prev, order];
+      });
     },
     onUpdate: ({ order }) => {
       setOrders((prev) =>
-        prev.map((o) => (o.id === order.id ? order : o))
+        prev.map((o) => {
+          if (o.id !== order.id) return o;
+          // Only update if newer (compare updatedAt timestamps)
+          if (new Date(o.updatedAt) >= new Date(order.updatedAt)) {
+            return o; // Stale update, ignore
+          }
+          return order;
+        })
       );
     },
     onDelete: ({ orderId }) => {
@@ -53,6 +79,38 @@ export default function KitchenBoard() {
         prev.map((o) =>
           o.id === orderId ? { ...o, status: newStatus, updatedAt: new Date().toISOString() } : o
         )
+      );
+    },
+    onItemAdded: ({ orderId, item }) => {
+      setOrders((prev) =>
+        prev.map((o) => {
+          if (o.id !== orderId) return o;
+          // Add item if not already present
+          if (o.items.some(i => i.id === item.id)) return o;
+          return { ...o, items: [...o.items, item] };
+        })
+      );
+    },
+    onItemUpdated: ({ orderId, item }) => {
+      setOrders((prev) =>
+        prev.map((o) => {
+          if (o.id !== orderId) return o;
+          return {
+            ...o,
+            items: o.items.map(i => (i.id === item.id ? item : i)),
+          };
+        })
+      );
+    },
+    onItemRemoved: ({ orderId, itemId }) => {
+      setOrders((prev) =>
+        prev.map((o) => {
+          if (o.id !== orderId) return o;
+          return {
+            ...o,
+            items: o.items.filter(i => i.id !== itemId),
+          };
+        })
       );
     },
   });
@@ -157,18 +215,22 @@ export default function KitchenBoard() {
           <DroppableColumn
             status={OrderStatus.PENDING}
             orders={pendingOrders}
+            newOrderIds={newOrderIds}
           />
           <DroppableColumn
             status={OrderStatus.IN_PROGRESS}
             orders={inProgressOrders}
+            newOrderIds={newOrderIds}
           />
           <DroppableColumn
             status={OrderStatus.HALTED}
             orders={haltedOrders}
+            newOrderIds={newOrderIds}
           />
           <DroppableColumn
             status={OrderStatus.COMPLETED}
             orders={completedOrders}
+            newOrderIds={newOrderIds}
           />
         </div>
       </KitchenDndContext>
