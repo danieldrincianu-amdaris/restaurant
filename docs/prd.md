@@ -209,6 +209,7 @@ restaurant-flow/
 | **Epic 1** | Foundation & Menu Management | Establish project infrastructure, database schema, and deliver complete menu management functionality for Admin users |
 | **Epic 2** | Order Management | Enable Restaurant Staff to create, edit, and manage orders with full menu integration |
 | **Epic 3** | Kitchen Display & Real-time | Deliver real-time kitchen display with drag-and-drop status management and notifications |
+| **Epic 4** | Enhancements & Polish | Improve performance, UX, accessibility, testing infrastructure, and developer experience |
 
 ---
 
@@ -734,6 +735,118 @@ Deliver a real-time kitchen display system with drag-and-drop status management,
 6. Optional: subtle notification when order status changes to COMPLETED
 7. "Last updated" timestamp or live indicator shown
 8. Works alongside manual refresh button (both options available)
+
+---
+
+## Epic 4: Enhancements & Polish
+
+### Epic Goal
+
+Improve the overall quality, performance, and developer experience of RestaurantFlow. This epic addresses technical debt, enhances accessibility, establishes comprehensive testing infrastructure, and adds quality-of-life features for both users and developers. By the end of this epic, the application will be production-ready with robust testing, documentation, and optimized performance.
+
+### Stories
+
+#### Story 4.1: Performance Optimizations
+
+**As a** Restaurant Staff or Kitchen user,  
+**I want** the application to remain fast and responsive even with many active orders,  
+**so that** I can efficiently manage high-volume service periods without UI lag.
+
+**Acceptance Criteria:**
+1. List components (OrderCard, KitchenOrderCard, MenuItemCard) use React.memo to prevent unnecessary re-renders
+2. CSS containment applied to animated components for improved animation performance
+3. Menu items API response cached client-side with 5-minute TTL
+4. Order list renders smoothly with 100+ active orders
+5. WebSocket message batching implemented for high-volume updates (>10 messages/second)
+6. Performance metrics logged in development mode for monitoring
+7. No visual regressions from optimizations
+
+---
+
+#### Story 4.2: UX Refinements
+
+**As a** Restaurant Staff user,  
+**I want** keyboard shortcuts and improved interactions,  
+**so that** I can work faster during busy service periods.
+
+**Acceptance Criteria:**
+1. Keyboard shortcuts available for common actions (documented in help modal)
+2. `Ctrl+N` creates new order from Orders page
+3. `Ctrl+R` refreshes current view
+4. `Escape` closes modals and cancels edit forms
+5. Menu items can be reordered within categories via drag-and-drop (Admin)
+6. Dark mode toggle available for Kitchen Display (easier on eyes in low-light)
+7. Bulk status update available for multiple orders (Kitchen)
+8. Mobile responsiveness improved for Staff order entry on tablets
+
+---
+
+#### Story 4.3: Tech Debt Reduction
+
+**As a** Developer,  
+**I want** to reduce accumulated technical debt,  
+**so that** the codebase remains maintainable and tests are reliable.
+
+**Acceptance Criteria:**
+1. All React act() warnings in test suite suppressed or fixed properly
+2. Duplicate validation logic consolidated into shared utilities
+3. Error handling follows consistent pattern across all API routes
+4. TypeScript strict mode enabled and all errors resolved
+5. Unused dependencies removed from all packages
+6. Console warnings/errors in test output reduced to zero (non-test-failure warnings)
+7. ESLint rules consistent across all packages
+
+---
+
+#### Story 4.4: Accessibility Improvements
+
+**As a** user with accessibility needs,  
+**I want** the application to be fully accessible,  
+**so that** I can use all features regardless of ability.
+
+**Acceptance Criteria:**
+1. Screen reader announcements for real-time order status changes
+2. ARIA live regions properly implemented for dynamic content
+3. High contrast mode toggle available in all interfaces
+4. Focus management correct when modals open/close
+5. All interactive elements keyboard accessible
+6. Color contrast meets WCAG 2.1 AA standards (4.5:1 minimum)
+7. Skip links provided for main content areas
+8. Form error messages properly associated with inputs
+
+---
+
+#### Story 4.5: Testing Infrastructure
+
+**As a** Developer,  
+**I want** comprehensive testing infrastructure,  
+**so that** I can catch regressions and ensure quality with confidence.
+
+**Acceptance Criteria:**
+1. End-to-end tests cover critical user flows (order creation, status updates, menu management)
+2. Visual regression testing prevents unintended UI changes
+3. Load testing validates WebSocket connection stability under stress
+4. API contract tests ensure frontend/backend compatibility
+5. Test coverage reports generated and tracked
+6. CI pipeline runs all test types on PR
+7. Test documentation explains testing strategy and how to run tests
+
+---
+
+#### Story 4.6: Developer Experience
+
+**As a** Developer,  
+**I want** comprehensive documentation and development tools,  
+**so that** I can understand the codebase and develop efficiently.
+
+**Acceptance Criteria:**
+1. Storybook configured with all reusable UI components documented
+2. OpenAPI/Swagger documentation available at `/api/docs`
+3. Component props documented with TypeScript JSDoc comments
+4. Development environment setup automated with single command
+5. Hot module replacement (HMR) working for all packages
+6. Git hooks configured for pre-commit linting and testing
+7. README updated with architecture overview and quick start guide
 
 ---
 
