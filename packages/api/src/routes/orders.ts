@@ -159,5 +159,25 @@ export function createOrderRoutes(prisma: PrismaClient, io: SocketIOServer): Rou
     }
   });
 
+  // POST /api/orders/bulk-status - Bulk update order statuses
+  router.post('/bulk-status', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { orderIds, status } = req.body;
+      
+      if (!Array.isArray(orderIds) || orderIds.length === 0) {
+        return res.status(400).json({ error: 'orderIds must be a non-empty array' });
+      }
+      
+      if (typeof status !== 'string') {
+        return res.status(400).json({ error: 'status is required' });
+      }
+      
+      const updatedOrders = await orderService.bulkUpdateStatus(orderIds, status);
+      return sendSuccess(res, updatedOrders);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   return router;
 }

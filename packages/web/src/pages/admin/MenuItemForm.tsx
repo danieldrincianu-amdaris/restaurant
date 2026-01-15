@@ -166,16 +166,16 @@ export default function MenuItemForm() {
     <div className="max-w-4xl mx-auto p-6">
       <Link
         to="/admin/menu"
-        className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
+        className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-4"
       >
         ← Back to Menu
       </Link>
 
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
         {isEditMode ? `Edit: ${item?.name || 'Menu Item'}` : 'Add New Menu Item'}
       </h1>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Image Upload */}
           <div className="md:col-span-1">
@@ -191,7 +191,7 @@ export default function MenuItemForm() {
           <div className="space-y-4">
             {/* Name */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-2">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                 Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -200,8 +200,8 @@ export default function MenuItemForm() {
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 onBlur={() => validateForm()}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 ${
-                  errors.name ? 'border-red-500' : 'border-gray-300'
+                className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-600 ${
+                  errors.name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                 }`}
               />
               {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
@@ -209,11 +209,11 @@ export default function MenuItemForm() {
 
             {/* Price */}
             <div>
-              <label htmlFor="price" className="block text-sm font-medium text-gray-900 mb-2">
+              <label htmlFor="price" className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
                 Price <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-gray-500">$</span>
+                <span className="absolute left-3 top-2 text-gray-500 dark:text-gray-400">$</span>
                 <input
                   type="number"
                   id="price"
@@ -222,8 +222,8 @@ export default function MenuItemForm() {
                   value={formData.price}
                   onChange={(e) => handleChange('price', e.target.value)}
                   onBlur={() => validateForm()}
-                  className={`w-full pl-8 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 ${
-                    errors.price ? 'border-red-500' : 'border-gray-300'
+                  className={`w-full pl-8 pr-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-600 ${
+                    errors.price ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                   }`}
                 />
               </div>
@@ -236,7 +236,7 @@ export default function MenuItemForm() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Category */}
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-900 mb-2">
+            <label htmlFor="category" className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
               Category <span className="text-red-500">*</span>
             </label>
             <select
@@ -244,8 +244,8 @@ export default function MenuItemForm() {
               value={formData.category}
               onChange={(e) => handleChange('category', e.target.value as Category | '')}
               onBlur={() => validateForm()}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 ${
-                errors.category ? 'border-red-500' : 'border-gray-300'
+              className={`w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-600 ${
+                errors.category ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
               }`}
             >
               <option value="">Select category</option>
@@ -260,14 +260,14 @@ export default function MenuItemForm() {
 
           {/* Food Type */}
           <div>
-            <label htmlFor="foodType" className="block text-sm font-medium text-gray-900 mb-2">
+            <label htmlFor="foodType" className="block text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
               Food Type <span className="text-red-500">*</span>
             </label>
             <select
               id="foodType"
               value={formData.foodType}
               onChange={(e) => handleChange('foodType', e.target.value as FoodType)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
             >
               {Object.values(FoodType).map((type) => (
                 <option key={type} value={type}>
@@ -291,9 +291,9 @@ export default function MenuItemForm() {
             id="available"
             checked={formData.available}
             onChange={(e) => handleChange('available', e.target.checked)}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-600"
+            className="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 rounded focus:ring-blue-600"
           />
-          <label htmlFor="available" className="ml-2 text-sm font-medium text-gray-900">
+          <label htmlFor="available" className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">
             Available for ordering
           </label>
         </div>
@@ -304,7 +304,7 @@ export default function MenuItemForm() {
             type="button"
             onClick={handleCancel}
             disabled={isSubmitting}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 disabled:opacity-50"
+            className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
           >
             Cancel
           </button>

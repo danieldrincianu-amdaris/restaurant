@@ -27,7 +27,10 @@ describe('MenuService', () => {
       const result = await menuService.getAllMenuItems();
 
       expect(result).toEqual(mockItems);
-      expect(mockPrisma.menuItem.findMany).toHaveBeenCalledWith({ where: {} });
+      expect(mockPrisma.menuItem.findMany).toHaveBeenCalledWith({
+        where: {},
+        orderBy: { sortOrder: 'asc' },
+      });
     });
 
     it('should filter by category', async () => {
@@ -38,6 +41,7 @@ describe('MenuService', () => {
 
       expect(mockPrisma.menuItem.findMany).toHaveBeenCalledWith({
         where: { category: 'MAIN' },
+        orderBy: { sortOrder: 'asc' },
       });
     });
 
@@ -51,6 +55,7 @@ describe('MenuService', () => {
 
       expect(mockPrisma.menuItem.findMany).toHaveBeenCalledWith({
         where: { foodType: 'PIZZA', available: true },
+        orderBy: { sortOrder: 'asc' },
       });
     });
   });

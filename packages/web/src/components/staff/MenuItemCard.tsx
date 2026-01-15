@@ -12,7 +12,7 @@ function MenuItemCard({ item, onClick }: MenuItemCardProps) {
   return (
     <button
       onClick={() => onClick(item)}
-      className="bg-white rounded-lg shadow p-4 hover:shadow-md active:scale-95 transition-all min-h-[44px] min-w-[44px] text-left w-full"
+      className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-4 hover:shadow-md dark:hover:shadow-gray-900/70 active:scale-95 transition-all min-h-[44px] min-w-[44px] text-left w-full"
       aria-label={`Add ${item.name} to order`}
       style={{ contain: 'layout style paint' }}
     >
@@ -24,15 +24,15 @@ function MenuItemCard({ item, onClick }: MenuItemCardProps) {
             className="w-16 h-16 object-cover rounded flex-shrink-0"
           />
         ) : (
-          <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-2xl flex-shrink-0">
+          <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded flex items-center justify-center text-gray-400 dark:text-gray-500 text-2xl flex-shrink-0">
             🍽️
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 text-sm mb-1 truncate">
+          <h3 className="font-semibold text-gray-900 dark:text-white text-sm mb-1 truncate">
             {item.name}
           </h3>
-          <p className="text-blue-600 font-bold text-base">
+          <p className="text-blue-600 dark:text-blue-400 font-bold text-base">
             {formatPrice(item.price)}
           </p>
         </div>

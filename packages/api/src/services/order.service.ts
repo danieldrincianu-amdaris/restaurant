@@ -301,4 +301,54 @@ export class OrderService {
 
     return updatedOrder;
   }
+
+  async bulkUpdateStatus(orderIds: string[], newStatus: string) {
+    // Validate all orders exist and transitions are valid
+    const orders = await this.prisma.order.findMany({
+      where: { id: { in: orderIds } },
+      include: orderWithItems,
+    });
+
+    if (orders.length !== orderIds.length) {
+      throw new AppError('One or more orders not found', 404);
+    }
+
+    // Validate all transitions are valid
+    for (const order of orders) {
+      const validTransitions = STATUS_TRANSITIONS[order.status];
+      if (!validTransitions || !validTransitions.includes(newStatus)) {
+        throw invalidStatusTransition(order.status, newStatus);
+      }
+    }
+
+    // Update all orders in a transaction
+    const updatedOrders = await this.prisma.$transaction(
+      orders.map((order) =>
+        this.prisma.order.update({
+          where: { id: order.id },
+          data: { status: newStatus },
+          include: orderWithItems,
+        })
+      )
+    );
+
+    // Emit individual order:status-changed events for each order
+    try {
+      for (const order of orders) {
+        const updatedOrder = updatedOrders.find(o => o.id === order.id);
+        if (updatedOrder) {
+          this.io.to('kitchen').to('orders').emit(SOCKET_EVENTS.ORDER_STATUS_CHANGED, {
+            orderId: updatedOrder.id,
+            previousStatus: order.status,
+            newStatus: newStatus,
+            updatedAt: updatedOrder.updatedAt.toISOString(),
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to emit ORDER_STATUS_CHANGED events:', error);
+    }
+
+    return updatedOrders;
+  }
 }

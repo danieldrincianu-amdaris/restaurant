@@ -541,7 +541,6 @@ describe('Orders API', () => {
           status: 'PENDING',
         },
       });
-      testOrderId = order.id;
 
       const res = await request(app)
         .patch(`/api/orders/${order.id}/status`)
@@ -550,6 +549,9 @@ describe('Orders API', () => {
       expect(res.status).toBe(200);
       expect(res.body.data.id).toBe(order.id);
       expect(res.body.data.status).toBe('IN_PROGRESS');
+      
+      // Cleanup this test's order
+      await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
     });
 
     it('should return 400 for invalid status value', async () => {
@@ -656,6 +658,9 @@ describe('Orders API', () => {
 
       expect(res3.status).toBe(400);
       expect(res3.body.error.code).toBe('INVALID_STATUS_TRANSITION');
+      
+      // Cleanup this test's order
+      await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
     });
   });
 });

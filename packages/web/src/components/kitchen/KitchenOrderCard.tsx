@@ -9,6 +9,9 @@ interface KitchenOrderCardProps {
   order: Order;
   status: OrderStatus;
   onClick?: () => void;
+  isSelected?: boolean;
+  onSelectionChange?: (orderId: string, selected: boolean) => void;
+  showCheckbox?: boolean;
 }
 
 const statusConfig = {
@@ -72,7 +75,7 @@ const getAlertTooltip = (status: OrderStatus, alertLevel: AlertLevel, elapsedMin
  * - Warning (yellow): PENDING >10min, IN_PROGRESS >30min
  * - Critical (red): PENDING >20min
  */
-function KitchenOrderCard({ order, status, onClick }: KitchenOrderCardProps) {
+function KitchenOrderCard({ order, status, onClick, isSelected = false, onSelectionChange, showCheckbox = false }: KitchenOrderCardProps) {
   const elapsedTime = useElapsedTime(order.createdAt);
   const thresholds = getWaitTimeThresholds();
   const alertLevel = useWaitTimeAlert(order.createdAt, status, thresholds);
@@ -81,10 +84,21 @@ function KitchenOrderCard({ order, status, onClick }: KitchenOrderCardProps) {
   const borderColor = getAlertBorderColor(status, alertLevel);
   const alertTooltip = getAlertTooltip(status, alertLevel, Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000));
 
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation(); // Prevent card click
+    onSelectionChange?.(order.id, e.target.checked);
+  };
+
+  const handleCardClick = () => {
+    if (!showCheckbox) {
+      onClick?.();
+    }
+  };
+
   return (
     <div
-      onClick={onClick}
-      className={`border-l-4 ${borderColor} bg-white rounded-md shadow-sm hover:shadow-md transition-shadow cursor-pointer min-h-[120px] max-h-[300px] flex flex-col`}
+      onClick={handleCardClick}
+      className={`border-l-4 ${borderColor} ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''} bg-white dark:bg-gray-800 rounded-md shadow-sm hover:shadow-md transition-all cursor-pointer min-h-[120px] max-h-[300px] flex flex-col`}
       role="button"
       tabIndex={0}
       aria-label={`Order ${order.id.slice(-6)} for table ${order.tableNumber}`}
@@ -97,17 +111,29 @@ function KitchenOrderCard({ order, status, onClick }: KitchenOrderCardProps) {
       }}
     >
       {/* Card Header */}
-      <div className="px-4 pt-4 pb-2 border-b border-gray-100">
+      <div className="px-4 pt-4 pb-2 border-b border-gray-100 dark:border-gray-700">
         <div className="flex items-center justify-between mb-1">
-          <span className="font-semibold text-gray-800">
-            #{order.id.slice(-6)}
-          </span>
-          <span className="text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            {showCheckbox && (
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={handleCheckboxChange}
+                className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+                aria-label={`Select order ${order.id.slice(-6)}`}
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
+            <span className="font-semibold text-gray-800 dark:text-gray-100">
+              #{order.id.slice(-6)}
+            </span>
+          </div>
+          <span className="text-sm text-gray-600 dark:text-gray-300">
             Table {order.tableNumber}
           </span>
         </div>
         
-        <div className="flex items-center justify-between text-sm text-gray-500">
+        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
           <div className="flex items-center gap-1" title={alertTooltip}>
             <span>⏱️</span>
             <span>{elapsedTime}</span>
@@ -132,9 +158,9 @@ function KitchenOrderCard({ order, status, onClick }: KitchenOrderCardProps) {
       </div>
 
       {/* Card Footer */}
-      <div className="px-4 py-2 border-t border-gray-100 bg-gray-50">
-        <div className="text-xs text-gray-500">
-          Server: <span className="font-medium text-gray-700">{order.serverName}</span>
+      <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+        <div className="text-xs text-gray-500 dark:text-gray-400">
+          Server: <span className="font-medium text-gray-700 dark:text-gray-200">{order.serverName}</span>
         </div>
       </div>
     </div>

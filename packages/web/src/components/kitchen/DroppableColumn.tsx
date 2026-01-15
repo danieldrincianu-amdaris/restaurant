@@ -9,6 +9,9 @@ interface DroppableColumnProps {
   orders: Order[];
   newOrderIds?: Set<string>;
   isFlashing?: boolean;
+  selectedOrderIds?: Set<string>;
+  onSelectionChange?: (orderId: string, selected: boolean) => void;
+  isBulkMode?: boolean;
 }
 
 /**
@@ -18,7 +21,15 @@ interface DroppableColumnProps {
  * Provides visual feedback for valid/invalid drop targets based on
  * status transition rules.
  */
-export default function DroppableColumn({ status, orders, newOrderIds, isFlashing }: DroppableColumnProps) {
+export default function DroppableColumn({ 
+  status, 
+  orders, 
+  newOrderIds, 
+  isFlashing,
+  selectedOrderIds,
+  onSelectionChange,
+  isBulkMode 
+}: DroppableColumnProps) {
   const { activeOrderStatus } = useDndState();
   const { setNodeRef, isOver } = useDroppable({
     id: status,
@@ -53,8 +64,9 @@ export default function DroppableColumn({ status, orders, newOrderIds, isFlashin
         status={status} 
         orders={orders} 
         newOrderIds={newOrderIds}
-        isFlashing={isFlashing}
-      />
+        isFlashing={isFlashing}        selectedOrderIds={selectedOrderIds}
+        onSelectionChange={onSelectionChange}
+        isBulkMode={isBulkMode}      />
     </div>
   );
 }

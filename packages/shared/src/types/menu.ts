@@ -30,6 +30,7 @@ export interface MenuItem {
   category: Category;
   foodType: FoodType;
   available: boolean;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 }

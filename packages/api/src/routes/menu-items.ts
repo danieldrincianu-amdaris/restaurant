@@ -89,5 +89,24 @@ export function createMenuItemRoutes(prisma: PrismaClient): Router {
     }
   });
 
+  // PATCH /api/menu-items/reorder - Reorder menu items
+  router.patch('/reorder', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { orderedIds } = req.body;
+
+      if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: 'orderedIds must be a non-empty array of menu item IDs',
+        });
+      }
+
+      const items = await menuService.reorderMenuItems(orderedIds);
+      return sendSuccess(res, items);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   return router;
 }

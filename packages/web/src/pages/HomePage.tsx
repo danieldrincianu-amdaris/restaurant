@@ -8,8 +8,8 @@ function HomePage() {
   
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh]">
-      <h1 className="mb-4 text-3xl font-bold">Welcome to RestaurantFlow</h1>
-      <p className="text-lg text-gray-600 mb-8">Select your role to continue</p>
+      <h1 className="mb-4 text-3xl font-bold dark:text-white">Welcome to RestaurantFlow</h1>
+      <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">Select your role to continue</p>
       
       <div className="flex gap-4">
         <Link 

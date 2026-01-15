@@ -9,6 +9,9 @@ interface DraggableOrderCardProps {
   status: OrderStatus;
   onClick?: () => void;
   isNew?: boolean;
+  isSelected?: boolean;
+  onSelectionChange?: (orderId: string, selected: boolean) => void;
+  showCheckbox?: boolean;
 }
 
 /**
@@ -19,7 +22,15 @@ interface DraggableOrderCardProps {
  * Supports highlight animation for new orders and status changes.
  * Touch-friendly with proper activation distance.
  */
-export default function DraggableOrderCard({ order, status, onClick, isNew = false }: DraggableOrderCardProps) {
+export default function DraggableOrderCard({ 
+  order, 
+  status, 
+  onClick, 
+  isNew = false,
+  isSelected = false,
+  onSelectionChange,
+  showCheckbox = false 
+}: DraggableOrderCardProps) {
   const {
     attributes,
     listeners,
@@ -72,6 +83,9 @@ export default function DraggableOrderCard({ order, status, onClick, isNew = fal
         order={order}
         status={status}
         onClick={!isDragging ? onClick : undefined}
+        isSelected={isSelected}
+        onSelectionChange={onSelectionChange}
+        showCheckbox={showCheckbox}
       />
     </div>
   );

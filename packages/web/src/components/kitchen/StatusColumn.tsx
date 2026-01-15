@@ -7,6 +7,9 @@ interface StatusColumnProps {
   orders: Order[];
   newOrderIds?: Set<string>;
   isFlashing?: boolean;
+  selectedOrderIds?: Set<string>;
+  onSelectionChange?: (orderId: string, selected: boolean) => void;
+  isBulkMode?: boolean;
 }
 
 const statusConfig = {
@@ -53,12 +56,20 @@ const statusConfig = {
  * Displays orders for a specific status with header showing count
  * and scrollable order card area with entry/exit animations.
  */
-export default function StatusColumn({ status, orders, newOrderIds = new Set(), isFlashing = false }: StatusColumnProps) {
+export default function StatusColumn({ 
+  status, 
+  orders, 
+  newOrderIds = new Set(), 
+  isFlashing = false,
+  selectedOrderIds = new Set(),
+  onSelectionChange,
+  isBulkMode = false 
+}: StatusColumnProps) {
   const config = statusConfig[status];
   const orderCount = orders.length;
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div className="flex flex-col h-full bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
       {/* Column Header */}
       <div className={`${config.bgColor} px-4 py-3 flex items-center justify-between ${isFlashing ? 'animate-column-flash' : ''}`}>
         <div className="flex items-center gap-2">
@@ -76,7 +87,7 @@ export default function StatusColumn({ status, orders, newOrderIds = new Set(), 
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {orderCount === 0 ? (
           // Empty state
-          <div className="text-center py-8 text-gray-400">
+          <div className="text-center py-8 text-gray-400 dark:text-gray-500">
             <p className="text-sm">No orders</p>
           </div>
         ) : (
@@ -98,6 +109,9 @@ export default function StatusColumn({ status, orders, newOrderIds = new Set(), 
                   order={order}
                   status={status}
                   isNew={newOrderIds.has(order.id)}
+                  isSelected={selectedOrderIds.has(order.id)}
+                  onSelectionChange={onSelectionChange}
+                  showCheckbox={isBulkMode}
                 />
               </motion.div>
             ))}

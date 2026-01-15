@@ -9,6 +9,7 @@ import { getWaitTimeThresholds } from '../../config/waitTimeThresholds';
 import { applyKitchenFilters } from '../../lib/orderFilters';
 import KitchenDndContext from './KitchenDndContext';
 import DroppableColumn from './DroppableColumn';
+import BulkActionsToolbar from './BulkActionsToolbar';
 import { api } from '../../lib/api';
 
 interface KitchenBoardProps {
@@ -59,6 +60,10 @@ export default function KitchenBoard({ isMuted = false, isPrioritySorted = false
     const stored = localStorage.getItem('kitchen.showCanceled');
     return stored === 'true';
   });
+
+  // Bulk selection state
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+  const [isBulkMode, setIsBulkMode] = useState(false);
 
   // Initialize orders from API
   useEffect(() => {
@@ -196,8 +201,8 @@ export default function KitchenBoard({ isMuted = false, isPrioritySorted = false
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading orders...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading orders...</p>
         </div>
       </div>
     );
@@ -207,9 +212,9 @@ export default function KitchenBoard({ isMuted = false, isPrioritySorted = false
   if (error) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="text-center text-red-600">
+        <div className="text-center text-red-600 dark:text-red-400">
           <p className="text-xl font-semibold mb-2">⚠️ Error Loading Orders</p>
-          <p className="text-gray-600">{error}</p>
+          <p className="text-gray-600 dark:text-gray-300">{error}</p>
         </div>
       </div>
     );
@@ -301,16 +306,73 @@ export default function KitchenBoard({ isMuted = false, isPrioritySorted = false
     }
   };
 
+  // Bulk selection handlers
+  const handleSelectionChange = (orderId: string, selected: boolean) => {
+    setSelectedOrderIds((prev) => {
+      const newSet = new Set(prev);
+      if (selected) {
+        newSet.add(orderId);
+      } else {
+        newSet.delete(orderId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleClearSelection = () => {
+    setSelectedOrderIds(new Set());
+    setIsBulkMode(false);
+  };
+
+  const handleBulkMoveToStatus = async (newStatus: OrderStatus) => {
+    const orderIds = Array.from(selectedOrderIds);
+    if (orderIds.length === 0) return;
+
+    try {
+      // Call bulk update API
+      await api.post('/orders/bulk-status', {
+        orderIds,
+        status: newStatus,
+      });
+
+      // Clear selection after successful update
+      handleClearSelection();
+      
+      // WebSocket will broadcast individual events for real-time updates
+    } catch (error) {
+      console.error('Failed to bulk update order status:', error);
+      // TODO: Show error toast notification
+    }
+  };
+
   return (
     <div className="h-full p-4">
-      {/* Show Canceled Toggle */}
-      <div className="mb-3 flex justify-end">
+      {/* Controls row */}
+      <div className="mb-3 flex justify-between items-center">
+        {/* Bulk mode toggle */}
+        <button
+          onClick={() => {
+            setIsBulkMode(!isBulkMode);
+            if (isBulkMode) {
+              handleClearSelection();
+            }
+          }}
+          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            isBulkMode
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+          }`}
+        >
+          {isBulkMode ? '✓ Bulk Mode' : 'Bulk Mode'}
+        </button>
+
+        {/* Show Canceled Toggle */}
         <button
           onClick={() => setShowCanceled(!showCanceled)}
           className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
             showCanceled
-              ? 'bg-red-100 text-red-700 hover:bg-red-200'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
           }`}
         >
           {showCanceled ? '✓ Show Canceled' : 'Show Canceled'}
@@ -325,24 +387,43 @@ export default function KitchenBoard({ isMuted = false, isPrioritySorted = false
             orders={pendingOrders}
             newOrderIds={newOrderIds}
             isFlashing={isPendingFlashing}
+            selectedOrderIds={selectedOrderIds}
+            onSelectionChange={handleSelectionChange}
+            isBulkMode={isBulkMode}
           />
           <DroppableColumn
             status={OrderStatus.IN_PROGRESS}
             orders={inProgressOrders}
             newOrderIds={newOrderIds}
+            selectedOrderIds={selectedOrderIds}
+            onSelectionChange={handleSelectionChange}
+            isBulkMode={isBulkMode}
           />
           <DroppableColumn
             status={OrderStatus.HALTED}
             orders={haltedOrders}
             newOrderIds={newOrderIds}
+            selectedOrderIds={selectedOrderIds}
+            onSelectionChange={handleSelectionChange}
+            isBulkMode={isBulkMode}
           />
           <DroppableColumn
             status={OrderStatus.COMPLETED}
             orders={completedOrders}
             newOrderIds={newOrderIds}
+            selectedOrderIds={selectedOrderIds}
+            onSelectionChange={handleSelectionChange}
+            isBulkMode={isBulkMode}
           />
         </div>
       </KitchenDndContext>
+
+      {/* Bulk actions toolbar (fixed at bottom) */}
+      <BulkActionsToolbar
+        selectedCount={selectedOrderIds.size}
+        onClearSelection={handleClearSelection}
+        onMoveToStatus={handleBulkMoveToStatus}
+      />
     </div>
   );
 }

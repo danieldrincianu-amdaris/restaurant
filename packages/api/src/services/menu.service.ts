@@ -25,7 +25,10 @@ export class MenuService {
       where.available = filters.available;
     }
     
-    return this.prisma.menuItem.findMany({ where });
+    return this.prisma.menuItem.findMany({
+      where,
+      orderBy: { sortOrder: 'asc' },
+    });
   }
 
   async getMenuItemById(id: string): Promise<MenuItem | null> {
@@ -71,5 +74,17 @@ export class MenuService {
     return this.prisma.menuItem.delete({
       where: { id },
     });
+  }
+
+  async reorderMenuItems(orderedIds: string[]): Promise<MenuItem[]> {
+    // Update sortOrder for each item in a transaction
+    const updates = orderedIds.map((id, index) =>
+      this.prisma.menuItem.update({
+        where: { id },
+        data: { sortOrder: index },
+      })
+    );
+
+    return this.prisma.$transaction(updates);
   }
 }

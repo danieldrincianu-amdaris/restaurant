@@ -33,7 +33,7 @@ function MenuBrowser({ onSelectItem }: MenuBrowserProps) {
   if (error) {
     return (
       <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-800 dark:text-red-300">
           <p className="font-medium">Error loading menu items</p>
           <p className="text-sm mt-1">{error}</p>
         </div>
@@ -44,25 +44,25 @@ function MenuBrowser({ onSelectItem }: MenuBrowserProps) {
   return (
     <div className="h-full flex flex-col">
       {/* Search Input */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <input
           type="text"
           placeholder="🔍 Search menu items..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
       {/* Category Tabs */}
-      <div className="px-4 pt-4 pb-2 border-b border-gray-200 overflow-x-auto">
+      <div className="px-4 pt-4 pb-2 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
         <div className="flex gap-2 min-w-max">
           <button
             onClick={() => setSelectedCategory('')}
-            className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+            className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
               selectedCategory === ''
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
             All
@@ -71,10 +71,10 @@ function MenuBrowser({ onSelectItem }: MenuBrowserProps) {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`px-4 py-2 min-h-[44px] rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                 selectedCategory === category
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               {category}
@@ -84,11 +84,11 @@ function MenuBrowser({ onSelectItem }: MenuBrowserProps) {
       </div>
 
       {/* Food Type Filter */}
-      <div className="px-4 py-3 border-b border-gray-200">
+      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
         <select
           value={selectedFoodType}
           onChange={(e) => setSelectedFoodType(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <option value="">All Types</option>
           {foodTypes.map((type) => (
@@ -108,11 +108,11 @@ function MenuBrowser({ onSelectItem }: MenuBrowserProps) {
         ) : filteredItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-4">
             <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No menu items found</h3>
-            <p className="text-gray-500">Try adjusting your filters or search query.</p>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No menu items found</h3>
+            <p className="text-gray-500 dark:text-gray-400">Try adjusting your filters or search query.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredItems.map((item) => (
               <MenuItemCard key={item.id} item={item} onClick={onSelectItem} />
             ))}

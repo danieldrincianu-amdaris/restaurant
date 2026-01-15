@@ -38,34 +38,34 @@ function OrderCard({ order, isNew = false, isUpdated = false }: OrderCardProps) 
   return (
     <div
       onClick={handleCardClick}
-      className={`bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow cursor-pointer ${animationClasses}`}
+      className={`bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/50 p-4 hover:shadow-md dark:hover:shadow-gray-900/70 transition-shadow cursor-pointer ${animationClasses}`}
       data-testid={`order-card-${order.id}`}
       style={{ contain: 'layout style paint' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             Order #{order.id.slice(-6)}
           </h3>
           <OrderStatusBadge status={order.status} />
         </div>
-        <span className="text-sm text-gray-500">⏱️ {timeElapsed}</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">⏱️ {timeElapsed}</span>
       </div>
 
       {/* Details */}
       <div className="space-y-2 mb-3">
         <div className="flex items-center gap-2 text-sm">
-          <span className="font-medium text-gray-700">Table:</span>
-          <span className="text-gray-900">{order.tableNumber}</span>
+          <span className="font-medium text-gray-700 dark:text-gray-300">Table:</span>
+          <span className="text-gray-900 dark:text-gray-100">{order.tableNumber}</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="font-medium text-gray-700">Server:</span>
-          <span className="text-gray-900">{order.serverName}</span>
+          <span className="font-medium text-gray-700 dark:text-gray-300">Server:</span>
+          <span className="text-gray-900 dark:text-gray-100">{order.serverName}</span>
         </div>
         <div className="flex items-center gap-2 text-sm">
-          <span className="font-medium text-gray-700">Items:</span>
-          <span className="text-gray-900">{order.items.length}</span>
+          <span className="font-medium text-gray-700 dark:text-gray-300">Items:</span>
+          <span className="text-gray-900 dark:text-gray-100">{order.items.length}</span>
         </div>
       </div>
 
@@ -73,7 +73,7 @@ function OrderCard({ order, isNew = false, isUpdated = false }: OrderCardProps) 
       <div className="flex gap-2">
         <button
           onClick={handleCardClick}
-          className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+          className="flex-1 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
         >
           View
         </button>

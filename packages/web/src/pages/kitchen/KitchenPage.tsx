@@ -31,12 +31,12 @@ export default function KitchenPage() {
   });
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
       {/* Kitchen Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
           <span className="text-2xl">🍽️</span>
-          <h1 className="text-2xl font-bold text-gray-800">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
             RestaurantFlow Kitchen
           </h1>
         </div>
@@ -47,8 +47,8 @@ export default function KitchenPage() {
             onClick={togglePrioritySort}
             className={`px-3 py-2 rounded-md border transition-colors ${
               isPrioritySorted 
-                ? 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100' 
-                : 'border-gray-300 bg-white hover:bg-gray-50'
+                ? 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-200 dark:border-blue-400 dark:hover:bg-blue-800' 
+                : 'border-gray-300 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 dark:text-white'
             }`}
             aria-label={isPrioritySorted ? 'Priority sort enabled - Click to disable' : 'Priority sort disabled - Click to enable'}
             title={isPrioritySorted ? 'Priority Sort: ON' : 'Priority Sort: OFF'}
@@ -59,7 +59,7 @@ export default function KitchenPage() {
           {/* Mute/unmute toggle button */}
           <button
             onClick={toggleMute}
-            className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors"
+            className="px-3 py-2 rounded-md border border-gray-300 bg-white hover:bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:hover:bg-gray-600 transition-colors"
             aria-label={isMuted ? 'Sound off - Click to unmute' : 'Sound on - Click to mute'}
             title={isMuted ? 'Sound off' : 'Sound on'}
           >
@@ -68,7 +68,7 @@ export default function KitchenPage() {
           
           <ConnectionStatus />
           
-          <time className="text-lg font-medium text-gray-600">
+          <time className="text-lg font-medium text-gray-600 dark:text-gray-300">
             {formattedTime}
           </time>
         </div>

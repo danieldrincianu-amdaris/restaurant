@@ -13,7 +13,7 @@ interface OrderItemsListProps {
 export default function OrderItemsList({ items }: OrderItemsListProps) {
   if (!items || items.length === 0) {
     return (
-      <div className="text-center py-4 text-gray-400 text-sm">
+      <div className="text-center py-4 text-gray-400 dark:text-gray-500 text-sm">
         No items in order
       </div>
     );
@@ -33,14 +33,14 @@ export default function OrderItemsList({ items }: OrderItemsListProps) {
       
       {items.map((item) => (
         <div key={item.id} className="text-sm">
-          <div className="text-gray-700 font-medium">
+          <div className="text-gray-700 dark:text-gray-200 font-medium">
             {item.quantity}x {item.menuItem?.name || 'Unknown Item'}
           </div>
           
           {item.specialInstructions && (
             <div className="ml-4 mt-1 flex items-start gap-1.5">
-              <span className="text-amber-600 mt-0.5">└─ 🗒️</span>
-              <div className="bg-amber-50 text-amber-800 text-xs px-2 py-1 rounded">
+              <span className="text-amber-600 dark:text-amber-400 mt-0.5">└─ 🗒️</span>
+              <div className="bg-amber-50 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 text-xs px-2 py-1 rounded">
                 "{item.specialInstructions}"
               </div>
             </div>

@@ -4,7 +4,8 @@ import { useMenuItems } from '../../hooks/useMenuItems';
 import { useUpdateAvailability } from '../../hooks/useUpdateAvailability';
 import { useDeleteMenuItem } from '../../hooks/useDeleteMenuItem';
 import { useToast } from '../../contexts/ToastContext';
-import MenuItemTable from '../../components/menu/MenuItemTable';
+import { MenuItem } from '@restaurant/shared';
+import ReorderableMenuItemTable from '../../components/menu/ReorderableMenuItemTable';
 import MenuFilters from '../../components/menu/MenuFilters';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import EmptyState from '../../components/menu/EmptyState';
@@ -70,10 +71,30 @@ function MenuManagement() {
     setItemToDelete(null);
   };
 
+  const handleReorder = async (reorderedItems: MenuItem[]) => {
+    try {
+      const orderedIds = reorderedItems.map((item) => item.id);
+      const response = await fetch('/api/menu-items/reorder', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderedIds }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to reorder menu items');
+      }
+
+      showToast('Menu items reordered successfully', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to reorder items', 'error');
+      throw err; // Re-throw to trigger rollback in component
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Menu Management</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Menu Management</h1>
         <Link
           to="/admin/menu/new"
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
@@ -96,8 +117,9 @@ function MenuManagement() {
       {!isLoading && !error && items.length === 0 && <EmptyState />}
 
       {!isLoading && !error && items.length > 0 && (
-        <MenuItemTable
+        <ReorderableMenuItemTable
           items={itemsState.length > 0 ? itemsState : items}
+          onReorder={handleReorder}
           onToggleAvailability={handleToggleAvailability}
           onEdit={handleEdit}
           onDelete={handleDelete}
