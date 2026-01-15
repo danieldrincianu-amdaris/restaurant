@@ -77,6 +77,37 @@ h3 {
   }
 }
 
+/* Wait time alert animations */
+@keyframes pulse-critical {
+  0%, 100% {
+    border-color: rgb(239, 68, 68); /* red-500 */
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    border-color: rgb(220, 38, 38); /* red-600 */
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    border-color: rgb(245, 158, 11); /* amber-500 */
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5);
+  }
+  50% {
+    border-color: rgb(217, 119, 6); /* amber-600 */
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0);
+  }
+}
+
+.animate-pulse-critical {
+  animation: pulse-critical 1500ms ease-in-out infinite;
+}
+
+.animate-pulse-warning {
+  animation: pulse-warning 2000ms ease-in-out infinite;
+}
+
 .animate-pulse-new-order {
   animation: pulse-new-order 1500ms ease-in-out 3;
 }
@@ -94,6 +125,8 @@ h3 {
   .animate-pulse-new-order,
   .animate-status-change,
   .animate-column-flash,
+  .animate-pulse-critical,
+  .animate-pulse-warning,
   .animate-fade-in,
   .animate-scale-in {
     animation: none !important;

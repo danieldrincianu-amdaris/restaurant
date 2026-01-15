@@ -8,6 +8,21 @@ vi.mock('../../../src/lib/timeUtils', () => ({
   useElapsedTime: vi.fn(() => '12 min'),
 }));
 
+// Mock useWaitTimeAlert hook
+vi.mock('../../../src/hooks/useWaitTimeAlert', () => ({
+  useWaitTimeAlert: vi.fn(() => 'none'),
+  getElapsedMinutes: vi.fn(() => 12),
+}));
+
+// Mock threshold config
+vi.mock('../../../src/config/waitTimeThresholds', () => ({
+  getWaitTimeThresholds: vi.fn(() => ({
+    pendingWarningMinutes: 10,
+    pendingCriticalMinutes: 20,
+    inProgressWarningMinutes: 30,
+  })),
+}));
+
 // Mock OrderItemsList component
 vi.mock('../../../src/components/kitchen/OrderItemsList', () => ({
   default: ({ items }: { items: unknown[] }) => (

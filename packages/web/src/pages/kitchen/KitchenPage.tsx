@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ConnectionStatus } from '../../components/ui/ConnectionStatus';
 import KitchenBoard from '../../components/kitchen/KitchenBoard';
 import { useSoundPreference } from '../../hooks/useSoundPreference';
+import { usePrioritySortPreference } from '../../hooks/usePrioritySortPreference';
 
 /**
  * KitchenPage - Full-screen kitchen display board
@@ -12,6 +13,7 @@ import { useSoundPreference } from '../../hooks/useSoundPreference';
 export default function KitchenPage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const { isMuted, toggleMute } = useSoundPreference();
+  const [isPrioritySorted, togglePrioritySort] = usePrioritySortPreference();
 
   // Update time display every minute
   useEffect(() => {
@@ -40,6 +42,20 @@ export default function KitchenPage() {
         </div>
         
         <div className="flex items-center gap-4">
+          {/* Priority sort toggle button */}
+          <button
+            onClick={togglePrioritySort}
+            className={`px-3 py-2 rounded-md border transition-colors ${
+              isPrioritySorted 
+                ? 'border-blue-500 bg-blue-50 text-blue-700 hover:bg-blue-100' 
+                : 'border-gray-300 bg-white hover:bg-gray-50'
+            }`}
+            aria-label={isPrioritySorted ? 'Priority sort enabled - Click to disable' : 'Priority sort disabled - Click to enable'}
+            title={isPrioritySorted ? 'Priority Sort: ON' : 'Priority Sort: OFF'}
+          >
+            {isPrioritySorted ? '🔴' : '⚪'}
+          </button>
+          
           {/* Mute/unmute toggle button */}
           <button
             onClick={toggleMute}
@@ -60,7 +76,7 @@ export default function KitchenPage() {
 
       {/* Kitchen Board - fills remaining viewport height */}
       <main className="flex-1 overflow-hidden">
-        <KitchenBoard isMuted={isMuted} />
+        <KitchenBoard isMuted={isMuted} isPrioritySorted={isPrioritySorted} />
       </main>
     </div>
   );

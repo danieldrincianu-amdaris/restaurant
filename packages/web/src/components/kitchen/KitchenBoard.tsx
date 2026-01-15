@@ -4,6 +4,8 @@ import { useOrders } from '../../hooks/useOrders';
 import { useOrderEvents } from '../../hooks/useOrderEvents';
 import { useNotificationSound } from '../../hooks/useNotificationSound';
 import { useBrowserNotification } from '../../hooks/useBrowserNotification';
+import { type AlertLevel } from '../../hooks/useWaitTimeAlert';
+import { getWaitTimeThresholds } from '../../config/waitTimeThresholds';
 import { applyKitchenFilters } from '../../lib/orderFilters';
 import KitchenDndContext from './KitchenDndContext';
 import DroppableColumn from './DroppableColumn';
@@ -11,6 +13,7 @@ import { api } from '../../lib/api';
 
 interface KitchenBoardProps {
   isMuted?: boolean;
+  isPrioritySorted?: boolean;
 }
 
 /**
@@ -19,8 +22,10 @@ interface KitchenBoardProps {
  * Displays orders organized by status (Pending, In Progress, Halted, Completed).
  * Responsive layout: 4-across on desktop, 2x2 on tablet portrait.
  * Real-time updates via WebSocket with animations and notifications.
+ * 
+ * Priority sorting (optional): Float orders with wait time alerts to the top
  */
-export default function KitchenBoard({ isMuted = false }: KitchenBoardProps) {
+export default function KitchenBoard({ isMuted = false, isPrioritySorted = false }: KitchenBoardProps) {
   // Fetch initial orders
   const { orders: initialOrders, isLoading, error } = useOrders();
   
@@ -198,9 +203,55 @@ export default function KitchenBoard({ isMuted = false }: KitchenBoardProps) {
   // Apply kitchen filters
   const filteredOrders = applyKitchenFilters(orders, showCanceled, 30);
 
-  // Filter orders by status
-  const pendingOrders = filteredOrders.filter(o => o.status === OrderStatus.PENDING);
-  const inProgressOrders = filteredOrders.filter(o => o.status === OrderStatus.IN_PROGRESS);
+  // Helper to get alert level for an order
+  const thresholds = getWaitTimeThresholds();
+  const getOrderAlertLevel = (order: Order): AlertLevel => {
+    const now = Date.now();
+    const created = new Date(order.createdAt).getTime();
+    const elapsedMinutes = Math.floor((now - created) / 60000);
+
+    if (order.status === OrderStatus.COMPLETED || order.status === OrderStatus.CANCELED) {
+      return 'none';
+    }
+
+    if (order.status === OrderStatus.PENDING) {
+      if (elapsedMinutes >= thresholds.pendingCriticalMinutes) return 'critical';
+      if (elapsedMinutes >= thresholds.pendingWarningMinutes) return 'warning';
+    }
+
+    if (order.status === OrderStatus.IN_PROGRESS) {
+      if (elapsedMinutes >= thresholds.inProgressWarningMinutes) return 'warning';
+    }
+
+    return 'none';
+  };
+
+  // Sort orders by alert priority if enabled
+  const sortByPriority = (ordersToSort: Order[]): Order[] => {
+    if (!isPrioritySorted) {
+      return ordersToSort;
+    }
+
+    return [...ordersToSort].sort((a, b) => {
+      const alertA = getOrderAlertLevel(a);
+      const alertB = getOrderAlertLevel(b);
+      
+      // Priority order: critical > warning > none
+      const priorityMap = { critical: 3, warning: 2, none: 1 };
+      const priorityDiff = priorityMap[alertB] - priorityMap[alertA];
+      
+      if (priorityDiff !== 0) {
+        return priorityDiff;
+      }
+      
+      // If same alert level, maintain chronological order (oldest first)
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    });
+  };
+
+  // Filter orders by status and apply priority sorting
+  const pendingOrders = sortByPriority(filteredOrders.filter(o => o.status === OrderStatus.PENDING));
+  const inProgressOrders = sortByPriority(filteredOrders.filter(o => o.status === OrderStatus.IN_PROGRESS));
   const haltedOrders = filteredOrders.filter(o => o.status === OrderStatus.HALTED);
   const completedOrders = filteredOrders.filter(o => o.status === OrderStatus.COMPLETED);
 
