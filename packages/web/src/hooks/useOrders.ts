@@ -53,6 +53,7 @@ export function useOrders(filters?: OrdersFilters) {
 
   return {
     orders,
+    setOrders,
     isLoading,
     error,
     refresh,

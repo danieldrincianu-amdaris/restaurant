@@ -1,16 +1,23 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { OrderStatus } from '@restaurant/shared';
+import { OrderStatus, Order } from '@restaurant/shared';
 import { useOrders } from '../../hooks/useOrders';
 import { useOrderEvents } from '../../hooks/useOrderEvents';
+import { useCompletedNotifications } from '../../hooks/useCompletedNotifications';
+import { useToast } from '../../contexts/ToastContext';
 import OrderCard from '../../components/staff/OrderCard';
+import LastUpdatedIndicator from '../../components/ui/LastUpdatedIndicator';
 
 function OrdersPage() {
-  const { orders, isLoading, error, refresh } = useOrders();
+  const { orders, setOrders, isLoading, error, refresh } = useOrders();
   const [filterTab, setFilterTab] = useState<'all' | 'my'>('all');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentServer, setCurrentServer] = useState<string>('');
+  const [recentlyUpdatedOrderIds, setRecentlyUpdatedOrderIds] = useState<Set<string>>(new Set());
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [completedNotificationsEnabled] = useCompletedNotifications();
+  const { showToast } = useToast();
 
   // Get current server name from localStorage
   useEffect(() => {
@@ -18,17 +25,79 @@ function OrdersPage() {
     setCurrentServer(savedServer);
   }, []);
 
-  // Subscribe to real-time order events
-  const handleOrderUpdate = useCallback(() => {
-    refresh();
-  }, [refresh]);
+  // Clear animation state after duration
+  useEffect(() => {
+    if (recentlyUpdatedOrderIds.size > 0) {
+      const timer = setTimeout(() => {
+        setRecentlyUpdatedOrderIds(new Set());
+      }, 3000); // 3 seconds
 
+      return () => clearTimeout(timer);
+    }
+  }, [recentlyUpdatedOrderIds]);
+
+  // Incremental state update handlers
+  const handleOrderCreated = useCallback((payload: { order: Order }) => {
+    setOrders((prev) => {
+      // Deduplication: check if order already exists
+      const exists = prev.some((o) => o.id === payload.order.id);
+      if (exists) return prev;
+      
+      // Add new order to beginning of list
+      return [payload.order, ...prev];
+    });
+    
+    setRecentlyUpdatedOrderIds((prev) => new Set(prev).add(payload.order.id));
+    setLastUpdated(new Date());
+  }, [setOrders]);
+
+  const handleOrderUpdated = useCallback((payload: { order: Order }) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === payload.order.id ? payload.order : o))
+    );
+    
+    setRecentlyUpdatedOrderIds((prev) => new Set(prev).add(payload.order.id));
+    setLastUpdated(new Date());
+  }, [setOrders]);
+
+  const handleOrderDeleted = useCallback((payload: { orderId: string }) => {
+    setOrders((prev) => prev.filter((o) => o.id !== payload.orderId));
+    setLastUpdated(new Date());
+  }, [setOrders]);
+
+  const handleOrderStatusChanged = useCallback((payload: { orderId: string; newStatus: OrderStatus; updatedAt: string }) => {
+    setOrders((prev) => {
+      const updated = prev.map((o) =>
+        o.id === payload.orderId
+          ? { ...o, status: payload.newStatus, updatedAt: payload.updatedAt }
+          : o
+      );
+      
+      // Show notification if order is completed and notifications are enabled
+      if (payload.newStatus === OrderStatus.COMPLETED && completedNotificationsEnabled) {
+        const order = updated.find((o) => o.id === payload.orderId);
+        if (order && order.serverName === currentServer) {
+          showToast(
+            `Order #${order.id.slice(-6)} is ready for Table ${order.tableNumber}`,
+            'success'
+          );
+        }
+      }
+      
+      return updated;
+    });
+    
+    setRecentlyUpdatedOrderIds((prev) => new Set(prev).add(payload.orderId));
+    setLastUpdated(new Date());
+  }, [setOrders, completedNotificationsEnabled, currentServer, showToast]);
+
+  // Subscribe to real-time order events with incremental handlers
   useOrderEvents({
     room: 'orders',
-    onCreate: handleOrderUpdate,
-    onUpdate: handleOrderUpdate,
-    onDelete: handleOrderUpdate,
-    onStatusChange: handleOrderUpdate,
+    onCreate: handleOrderCreated,
+    onUpdate: handleOrderUpdated,
+    onDelete: handleOrderDeleted,
+    onStatusChange: handleOrderStatusChanged,
   });
 
   // Filter active orders (exclude COMPLETED and CANCELED)
@@ -61,6 +130,7 @@ function OrdersPage() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await refresh();
+    setLastUpdated(new Date());
     setIsRefreshing(false);
   };
 
@@ -111,6 +181,8 @@ function OrdersPage() {
 
           {/* Status Filter and Refresh */}
           <div className="flex items-center gap-3">
+            <LastUpdatedIndicator lastUpdated={lastUpdated} />
+            
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as OrderStatus | 'all')}
@@ -179,7 +251,12 @@ function OrdersPage() {
         {!isLoading && !error && filteredOrders.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredOrders.map((order) => (
-              <OrderCard key={order.id} order={order} />
+              <OrderCard 
+                key={order.id} 
+                order={order}
+                isNew={recentlyUpdatedOrderIds.has(order.id) && orders.findIndex(o => o.id === order.id) === 0}
+                isUpdated={recentlyUpdatedOrderIds.has(order.id)}
+              />
             ))}
           </div>
         )}

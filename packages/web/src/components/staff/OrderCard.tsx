@@ -5,9 +5,11 @@ import { formatTimeElapsed } from '../../utils/time';
 
 interface OrderCardProps {
   order: Order;
+  isNew?: boolean;
+  isUpdated?: boolean;
 }
 
-function OrderCard({ order }: OrderCardProps) {
+function OrderCard({ order, isNew = false, isUpdated = false }: OrderCardProps) {
   const navigate = useNavigate();
   const timeElapsed = formatTimeElapsed(order.createdAt);
   const isPending = order.status === OrderStatus.PENDING;
@@ -21,10 +23,17 @@ function OrderCard({ order }: OrderCardProps) {
     navigate(`/staff/orders/${order.id}/edit`);
   };
 
+  // Determine animation classes
+  const animationClasses = isNew
+    ? 'animate-new-order'
+    : isUpdated
+    ? 'animate-status-update'
+    : '';
+
   return (
     <div
       onClick={handleCardClick}
-      className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow cursor-pointer"
+      className={`bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow cursor-pointer ${animationClasses}`}
       data-testid={`order-card-${order.id}`}
     >
       {/* Header */}

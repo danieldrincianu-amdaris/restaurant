@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import OrdersPage from '../../src/pages/staff/OrdersPage';
+import { ToastProvider } from '../../src/contexts/ToastContext';
 import * as useOrdersHook from '../../src/hooks/useOrders';
 import { Order, OrderStatus } from '@restaurant/shared';
 
@@ -73,11 +74,19 @@ const mockOrders: Order[] = [
 ];
 
 const mockRefresh = vi.fn();
+const mockSetOrders = vi.fn();
+
+// Mock useOrderEvents hook
+vi.mock('../../src/hooks/useOrderEvents', () => ({
+  useOrderEvents: vi.fn(),
+}));
 
 function renderOrdersPage() {
   return render(
     <BrowserRouter>
-      <OrdersPage />
+      <ToastProvider>
+        <OrdersPage />
+      </ToastProvider>
     </BrowserRouter>
   );
 }
@@ -93,6 +102,7 @@ describe('OrdersPage', () => {
   it('displays loading state while fetching orders', () => {
     vi.mocked(useOrdersHook.useOrders).mockReturnValue({
       orders: [],
+      setOrders: mockSetOrders,
       isLoading: true,
       error: null,
       refresh: mockRefresh,
@@ -106,6 +116,7 @@ describe('OrdersPage', () => {
   it('displays list of active orders (excluding COMPLETED and CANCELED)', () => {
     vi.mocked(useOrdersHook.useOrders).mockReturnValue({
       orders: mockOrders,
+      setOrders: mockSetOrders,
       isLoading: false,
       error: null,
       refresh: mockRefresh,
@@ -125,6 +136,7 @@ describe('OrdersPage', () => {
   it('displays orders sorted by creation time (newest first)', () => {
     vi.mocked(useOrdersHook.useOrders).mockReturnValue({
       orders: mockOrders,
+      setOrders: mockSetOrders,
       isLoading: false,
       error: null,
       refresh: mockRefresh,
@@ -145,6 +157,7 @@ describe('OrdersPage', () => {
   it('displays empty state when no orders exist', () => {
     vi.mocked(useOrdersHook.useOrders).mockReturnValue({
       orders: [],
+      setOrders: mockSetOrders,
       isLoading: false,
       error: null,
       refresh: mockRefresh,
@@ -159,6 +172,7 @@ describe('OrdersPage', () => {
   it('displays error state when fetch fails', () => {
     vi.mocked(useOrdersHook.useOrders).mockReturnValue({
       orders: [],
+      setOrders: mockSetOrders,
       isLoading: false,
       error: 'Failed to fetch orders',
       refresh: mockRefresh,
@@ -175,6 +189,7 @@ describe('OrdersPage', () => {
     
     vi.mocked(useOrdersHook.useOrders).mockReturnValue({
       orders: [],
+      setOrders: mockSetOrders,
       isLoading: false,
       error: 'Failed to fetch orders',
       refresh: mockRefresh,
@@ -194,6 +209,7 @@ describe('OrdersPage', () => {
 
     vi.mocked(useOrdersHook.useOrders).mockReturnValue({
       orders: mockOrders,
+      setOrders: mockSetOrders,
       isLoading: false,
       error: null,
       refresh: mockRefresh,
@@ -218,6 +234,7 @@ describe('OrdersPage', () => {
     
     vi.mocked(useOrdersHook.useOrders).mockReturnValue({
       orders: mockOrders,
+      setOrders: mockSetOrders,
       isLoading: false,
       error: null,
       refresh: mockRefresh,
@@ -242,6 +259,7 @@ describe('OrdersPage', () => {
     
     vi.mocked(useOrdersHook.useOrders).mockReturnValue({
       orders: mockOrders,
+      setOrders: mockSetOrders,
       isLoading: false,
       error: null,
       refresh: mockRefresh,
@@ -260,6 +278,7 @@ describe('OrdersPage', () => {
   it('has a link to create new order in header', () => {
     vi.mocked(useOrdersHook.useOrders).mockReturnValue({
       orders: [],
+      setOrders: mockSetOrders,
       isLoading: false,
       error: null,
       refresh: mockRefresh,
@@ -276,6 +295,7 @@ describe('OrdersPage', () => {
     
     vi.mocked(useOrdersHook.useOrders).mockReturnValue({
       orders: mockOrders,
+      setOrders: mockSetOrders,
       isLoading: false,
       error: null,
       refresh: mockRefresh,
@@ -295,6 +315,7 @@ describe('OrdersPage', () => {
 
     vi.mocked(useOrdersHook.useOrders).mockReturnValue({
       orders: mockOrders.filter(o => o.status !== OrderStatus.COMPLETED), // Only active orders
+      setOrders: mockSetOrders,
       isLoading: false,
       error: null,
       refresh: mockRefresh,
