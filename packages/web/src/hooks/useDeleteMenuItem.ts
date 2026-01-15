@@ -8,6 +8,22 @@ interface UseDeleteMenuItemResult {
   error: string | null;
 }
 
+/**
+ * Invalidate menu items cache in localStorage
+ */
+function invalidateMenuCache() {
+  try {
+    const keys = Object.keys(localStorage);
+    keys.forEach((key) => {
+      if (key.startsWith('menu_items_cache')) {
+        localStorage.removeItem(key);
+      }
+    });
+  } catch (error) {
+    console.error('Error invalidating menu cache:', error);
+  }
+}
+
 export function useDeleteMenuItem(): UseDeleteMenuItemResult {
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +34,10 @@ export function useDeleteMenuItem(): UseDeleteMenuItemResult {
       setError(null);
 
       const response = await api.delete<{ data: MenuItem }>(`/menu-items/${id}`);
+      
+      // Invalidate cache after successful deletion
+      invalidateMenuCache();
+      
       return response.data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete menu item';

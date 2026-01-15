@@ -8,6 +8,22 @@ interface UseUpdateMenuItemResult {
   error: string | null;
 }
 
+/**
+ * Invalidate menu items cache in localStorage
+ */
+function invalidateMenuCache() {
+  try {
+    const keys = Object.keys(localStorage);
+    keys.forEach((key) => {
+      if (key.startsWith('menu_items_cache')) {
+        localStorage.removeItem(key);
+      }
+    });
+  } catch (error) {
+    console.error('Error invalidating menu cache:', error);
+  }
+}
+
 export function useUpdateMenuItem(): UseUpdateMenuItemResult {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,6 +33,10 @@ export function useUpdateMenuItem(): UseUpdateMenuItemResult {
     setError(null);
     try {
       const response = await api.put<{ data: MenuItem }>(`/menu-items/${id}`, data);
+      
+      // Invalidate cache after successful update
+      invalidateMenuCache();
+      
       return response.data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update menu item';

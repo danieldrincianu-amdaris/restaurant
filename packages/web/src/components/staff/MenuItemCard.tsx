@@ -1,4 +1,5 @@
 import { MenuItem } from '@restaurant/shared';
+import { memo } from 'react';
 
 interface MenuItemCardProps {
   item: MenuItem;
@@ -13,6 +14,7 @@ function MenuItemCard({ item, onClick }: MenuItemCardProps) {
       onClick={() => onClick(item)}
       className="bg-white rounded-lg shadow p-4 hover:shadow-md active:scale-95 transition-all min-h-[44px] min-w-[44px] text-left w-full"
       aria-label={`Add ${item.name} to order`}
+      style={{ contain: 'layout style paint' }}
     >
       <div className="flex gap-3 items-start">
         {item.imageUrl ? (
@@ -39,4 +41,16 @@ function MenuItemCard({ item, onClick }: MenuItemCardProps) {
   );
 }
 
-export default MenuItemCard;
+// Custom comparison function for React.memo
+// Only re-render if item data changes (onClick is stable)
+const arePropsEqual = (prevProps: MenuItemCardProps, nextProps: MenuItemCardProps) => {
+  return (
+    prevProps.item.id === nextProps.item.id &&
+    prevProps.item.name === nextProps.item.name &&
+    prevProps.item.price === nextProps.item.price &&
+    prevProps.item.available === nextProps.item.available &&
+    prevProps.item.imageUrl === nextProps.item.imageUrl
+  );
+};
+
+export default memo(MenuItemCard, arePropsEqual);

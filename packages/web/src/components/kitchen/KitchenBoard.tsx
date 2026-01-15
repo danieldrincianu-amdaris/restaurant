@@ -68,6 +68,21 @@ export default function KitchenBoard({ isMuted = false, isPrioritySorted = false
   }, [initialOrders]);
 
   // Real-time order updates via WebSocket
+  // NOTE: For high-frequency updates, consider using useBatchedUpdates:
+  // const { addUpdate } = useBatchedUpdates({
+  //   onFlush: (updates) => {
+  //     setOrders(prev => {
+  //       let result = prev;
+  //       updates.forEach(({ payload }) => {
+  //         // Apply each update sequentially
+  //         if (payload.type === 'create') result = [...result, payload.order];
+  //         if (payload.type === 'update') result = result.map(o => o.id === payload.order.id ? payload.order : o);
+  //       });
+  //       return result;
+  //     });
+  //   },
+  //   windowMs: 100,
+  // });
   useOrderEvents({
     room: 'kitchen',
     onCreate: ({ order }) => {

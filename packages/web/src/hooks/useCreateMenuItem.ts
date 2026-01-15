@@ -8,6 +8,22 @@ interface UseCreateMenuItemResult {
   error: string | null;
 }
 
+/**
+ * Invalidate menu items cache in localStorage
+ */
+function invalidateMenuCache() {
+  try {
+    const keys = Object.keys(localStorage);
+    keys.forEach((key) => {
+      if (key.startsWith('menu_items_cache')) {
+        localStorage.removeItem(key);
+      }
+    });
+  } catch (error) {
+    console.error('Error invalidating menu cache:', error);
+  }
+}
+
 export function useCreateMenuItem(): UseCreateMenuItemResult {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,6 +33,10 @@ export function useCreateMenuItem(): UseCreateMenuItemResult {
     setError(null);
     try {
       const response = await api.post<{ data: MenuItem }>('/menu-items', data);
+      
+      // Invalidate cache after successful creation
+      invalidateMenuCache();
+      
       return response.data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create menu item';

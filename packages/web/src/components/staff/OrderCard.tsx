@@ -1,7 +1,9 @@
 import { Order, OrderStatus } from '@restaurant/shared';
 import { useNavigate } from 'react-router-dom';
+import { memo } from 'react';
 import OrderStatusBadge from '../ui/OrderStatusBadge';
 import { formatTimeElapsed } from '../../utils/time';
+import { useRenderCount } from '../../hooks/useRenderCount';
 
 interface OrderCardProps {
   order: Order;
@@ -10,6 +12,9 @@ interface OrderCardProps {
 }
 
 function OrderCard({ order, isNew = false, isUpdated = false }: OrderCardProps) {
+  // Example: Performance monitoring in development
+  useRenderCount('OrderCard', { orderId: order.id, status: order.status });
+  
   const navigate = useNavigate();
   const timeElapsed = formatTimeElapsed(order.createdAt);
   const isPending = order.status === OrderStatus.PENDING;
@@ -35,6 +40,7 @@ function OrderCard({ order, isNew = false, isUpdated = false }: OrderCardProps) 
       onClick={handleCardClick}
       className={`bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow cursor-pointer ${animationClasses}`}
       data-testid={`order-card-${order.id}`}
+      style={{ contain: 'layout style paint' }}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
@@ -84,4 +90,17 @@ function OrderCard({ order, isNew = false, isUpdated = false }: OrderCardProps) 
   );
 }
 
-export default OrderCard;
+// Custom comparison function for React.memo
+// Only re-render if order data, isNew, or isUpdated changes
+const arePropsEqual = (prevProps: OrderCardProps, nextProps: OrderCardProps) => {
+  return (
+    prevProps.order.id === nextProps.order.id &&
+    prevProps.order.status === nextProps.order.status &&
+    prevProps.order.updatedAt === nextProps.order.updatedAt &&
+    prevProps.order.items.length === nextProps.order.items.length &&
+    prevProps.isNew === nextProps.isNew &&
+    prevProps.isUpdated === nextProps.isUpdated
+  );
+};
+
+export default memo(OrderCard, arePropsEqual);

@@ -1,4 +1,5 @@
 import { Order, OrderStatus } from '@restaurant/shared';
+import { memo } from 'react';
 import { useElapsedTime } from '../../lib/timeUtils';
 import { useWaitTimeAlert, type AlertLevel } from '../../hooks/useWaitTimeAlert';
 import { getWaitTimeThresholds } from '../../config/waitTimeThresholds';
@@ -71,7 +72,7 @@ const getAlertTooltip = (status: OrderStatus, alertLevel: AlertLevel, elapsedMin
  * - Warning (yellow): PENDING >10min, IN_PROGRESS >30min
  * - Critical (red): PENDING >20min
  */
-export default function KitchenOrderCard({ order, status, onClick }: KitchenOrderCardProps) {
+function KitchenOrderCard({ order, status, onClick }: KitchenOrderCardProps) {
   const elapsedTime = useElapsedTime(order.createdAt);
   const thresholds = getWaitTimeThresholds();
   const alertLevel = useWaitTimeAlert(order.createdAt, status, thresholds);
@@ -87,6 +88,7 @@ export default function KitchenOrderCard({ order, status, onClick }: KitchenOrde
       role="button"
       tabIndex={0}
       aria-label={`Order ${order.id.slice(-6)} for table ${order.tableNumber}`}
+      style={{ contain: 'layout style paint' }}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -138,3 +140,16 @@ export default function KitchenOrderCard({ order, status, onClick }: KitchenOrde
     </div>
   );
 }
+
+// Custom comparison function for React.memo
+// Only re-render if order data or status changes (time updates handled internally)
+const arePropsEqual = (prevProps: KitchenOrderCardProps, nextProps: KitchenOrderCardProps) => {
+  return (
+    prevProps.order.id === nextProps.order.id &&
+    prevProps.order.updatedAt === nextProps.order.updatedAt &&
+    prevProps.status === nextProps.status &&
+    prevProps.order.items.length === nextProps.order.items.length
+  );
+};
+
+export default memo(KitchenOrderCard, arePropsEqual);
