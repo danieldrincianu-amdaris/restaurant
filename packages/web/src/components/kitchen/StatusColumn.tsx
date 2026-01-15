@@ -1,4 +1,5 @@
 import { Order, OrderStatus } from '@restaurant/shared';
+import KitchenOrderCard from './KitchenOrderCard';
 
 interface StatusColumnProps {
   status: OrderStatus;
@@ -76,27 +77,13 @@ export default function StatusColumn({ status, orders }: StatusColumnProps) {
             <p className="text-sm">No orders</p>
           </div>
         ) : (
-          // Placeholder order cards - actual cards implemented in Story 3.5
+          // Kitchen order cards with full details
           orders.map((order) => (
-            <div
+            <KitchenOrderCard
               key={order.id}
-              className={`border-l-4 ${config.borderColor} bg-gray-50 rounded-md p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-gray-800">
-                  #{order.id.slice(-6)}
-                </span>
-                <span className="text-sm text-gray-600">
-                  Table {order.tableNumber}
-                </span>
-              </div>
-              <div className="text-sm text-gray-600">
-                <p>{order.items?.length || 0} items</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  Server: {order.serverName}
-                </p>
-              </div>
-            </div>
+              order={order}
+              status={status}
+            />
           ))
         )}
       </div>

@@ -98,28 +98,28 @@ describe('StatusColumn', () => {
     expect(screen.getByText('No orders')).toBeInTheDocument();
   });
 
-  it('renders placeholder cards for each order', () => {
+  it('renders order cards for each order', () => {
     render(<StatusColumn status={OrderStatus.PENDING} orders={mockOrders} />);
 
     // Check that order IDs are displayed (last 6 chars)
-    expect(screen.getByText(`#${mockOrders[0].id.slice(-6)}`)).toBeInTheDocument();
-    expect(screen.getByText(`#${mockOrders[1].id.slice(-6)}`)).toBeInTheDocument();
+    expect(screen.getByText('#1')).toBeInTheDocument();
+    expect(screen.getByText('#2')).toBeInTheDocument();
 
     // Check table numbers
     expect(screen.getByText('Table 5')).toBeInTheDocument();
     expect(screen.getByText('Table 3')).toBeInTheDocument();
 
-    // Check server names
-    expect(screen.getByText('Server: John')).toBeInTheDocument();
-    expect(screen.getByText('Server: Sarah')).toBeInTheDocument();
+    // Check server names are in the cards
+    expect(screen.getByText(/John/)).toBeInTheDocument();
+    expect(screen.getByText(/Sarah/)).toBeInTheDocument();
   });
 
-  it('displays item count in placeholder cards', () => {
+  it('renders KitchenOrderCard components', () => {
     render(<StatusColumn status={OrderStatus.PENDING} orders={mockOrders} />);
 
-    // First order has 1 item, second has 0
-    expect(screen.getByText('1 items')).toBeInTheDocument();
-    expect(screen.getByText('0 items')).toBeInTheDocument();
+    // Both orders should be rendered
+    expect(screen.getByText('#1')).toBeInTheDocument();
+    expect(screen.getByText('#2')).toBeInTheDocument();
   });
 
   it('applies border color based on status', () => {
