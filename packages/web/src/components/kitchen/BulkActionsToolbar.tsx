@@ -1,7 +1,8 @@
-import { OrderStatus } from '@restaurant/shared';
+import { Order, OrderStatus, STATUS_TRANSITIONS } from '@restaurant/shared';
 
 interface BulkActionsToolbarProps {
   selectedCount: number;
+  selectedOrders: Order[];
   onClearSelection: () => void;
   onMoveToStatus: (status: OrderStatus) => void;
 }
@@ -11,13 +12,27 @@ interface BulkActionsToolbarProps {
  * 
  * Appears when one or more orders are selected.
  * Allows moving all selected orders to a new status in bulk.
+ * Validates that all selected orders can transition to target status.
  */
 export default function BulkActionsToolbar({ 
-  selectedCount, 
+  selectedCount,
+  selectedOrders,
   onClearSelection, 
   onMoveToStatus 
 }: BulkActionsToolbarProps) {
   if (selectedCount === 0) return null;
+
+  // Check if all selected orders can transition to a given status
+  const canTransitionTo = (targetStatus: OrderStatus): boolean => {
+    return selectedOrders.every(order => {
+      const allowedTransitions = STATUS_TRANSITIONS[order.status];
+      return allowedTransitions.includes(targetStatus);
+    });
+  };
+
+  const canMoveToInProgress = canTransitionTo(OrderStatus.IN_PROGRESS);
+  const canMoveToHalted = canTransitionTo(OrderStatus.HALTED);
+  const canMoveToCompleted = canTransitionTo(OrderStatus.COMPLETED);
 
   return (
     <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg px-6 py-4">
@@ -44,21 +59,27 @@ export default function BulkActionsToolbar({
           
           <button
             onClick={() => onMoveToStatus(OrderStatus.IN_PROGRESS)}
-            className="px-3 py-1.5 rounded-md bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium transition-colors"
+            disabled={!canMoveToInProgress}
+            title={!canMoveToInProgress ? 'One or more selected orders cannot transition to In Progress' : ''}
+            className="px-3 py-1.5 rounded-md bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-amber-500"
           >
             In Progress
           </button>
           
           <button
             onClick={() => onMoveToStatus(OrderStatus.HALTED)}
-            className="px-3 py-1.5 rounded-md bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium transition-colors"
+            disabled={!canMoveToHalted}
+            title={!canMoveToHalted ? 'One or more selected orders cannot transition to Halted' : ''}
+            className="px-3 py-1.5 rounded-md bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-600"
           >
             Halted
           </button>
           
           <button
             onClick={() => onMoveToStatus(OrderStatus.COMPLETED)}
-            className="px-3 py-1.5 rounded-md bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors"
+            disabled={!canMoveToCompleted}
+            title={!canMoveToCompleted ? 'One or more selected orders cannot transition to Completed' : ''}
+            className="px-3 py-1.5 rounded-md bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-green-600"
           >
             Completed
           </button>

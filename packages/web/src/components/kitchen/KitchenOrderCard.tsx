@@ -174,7 +174,9 @@ const arePropsEqual = (prevProps: KitchenOrderCardProps, nextProps: KitchenOrder
     prevProps.order.id === nextProps.order.id &&
     prevProps.order.updatedAt === nextProps.order.updatedAt &&
     prevProps.status === nextProps.status &&
-    prevProps.order.items.length === nextProps.order.items.length
+    prevProps.order.items.length === nextProps.order.items.length &&
+    prevProps.isSelected === nextProps.isSelected &&
+    prevProps.showCheckbox === nextProps.showCheckbox
   );
 };
 

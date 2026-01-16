@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Order, OrderStatus } from '@restaurant/shared';
+import { Order, OrderStatus, STATUS_TRANSITIONS } from '@restaurant/shared';
 import { useOrders } from '../../hooks/useOrders';
 import { useOrderEvents } from '../../hooks/useOrderEvents';
 import { useNotificationSound } from '../../hooks/useNotificationSound';
@@ -341,7 +341,7 @@ export default function KitchenBoard({ isMuted = false, isPrioritySorted = false
       // WebSocket will broadcast individual events for real-time updates
     } catch (error) {
       console.error('Failed to bulk update order status:', error);
-      // TODO: Show error toast notification
+      alert(`Failed to update orders: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -352,8 +352,10 @@ export default function KitchenBoard({ isMuted = false, isPrioritySorted = false
         {/* Bulk mode toggle */}
         <button
           onClick={() => {
-            setIsBulkMode(!isBulkMode);
-            if (isBulkMode) {
+            const newBulkMode = !isBulkMode;
+            setIsBulkMode(newBulkMode);
+            if (!newBulkMode) {
+              // Clearing selection when DISABLING bulk mode
               handleClearSelection();
             }
           }}
@@ -421,6 +423,7 @@ export default function KitchenBoard({ isMuted = false, isPrioritySorted = false
       {/* Bulk actions toolbar (fixed at bottom) */}
       <BulkActionsToolbar
         selectedCount={selectedOrderIds.size}
+        selectedOrders={orders.filter(o => selectedOrderIds.has(o.id))}
         onClearSelection={handleClearSelection}
         onMoveToStatus={handleBulkMoveToStatus}
       />
