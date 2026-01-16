@@ -34,7 +34,10 @@ import { useCallback } from 'react';
  * }
  * ```
  */
-export function useBrowserNotification() {
+export function useBrowserNotification(): {
+  requestPermission: () => Promise<boolean>;
+  showNotification: (title: string, body: string) => void;
+} {
   const requestPermission = useCallback(async (): Promise<boolean> => {
     if (!('Notification' in window)) {
       return false; // Notifications not supported

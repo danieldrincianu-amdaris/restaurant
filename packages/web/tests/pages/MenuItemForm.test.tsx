@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
@@ -54,7 +54,7 @@ vi.mock('../../src/hooks/useImageUpload', () => ({
 
 const renderWithProviders = (ui: React.ReactElement) => {
   return render(
-    <MemoryRouter>
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ToastProvider>
         {ui}
       </ToastProvider>
@@ -75,8 +75,10 @@ describe('MenuItemForm', () => {
     const submitButton = screen.getByRole('button', { name: /save menu item/i });
     await user.click(submitButton);
 
-    expect(screen.getByText(/name is required/i)).toBeInTheDocument();
-    expect(screen.getByText(/price must be greater than 0/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/name is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/price is required/i)).toBeInTheDocument();
+    });
   });
 
   it('allows filling out form fields', async () => {
@@ -87,9 +89,11 @@ describe('MenuItemForm', () => {
     await user.type(screen.getByLabelText(/price/i), '12.50');
     await user.selectOptions(screen.getByLabelText(/category/i), Category.APPETIZER);
 
-    expect((screen.getByLabelText(/name/i) as HTMLInputElement).value).toBe('New Item');
-    expect((screen.getByLabelText(/price/i) as HTMLInputElement).value).toBe('12.5');
-    expect((screen.getByLabelText(/category/i) as HTMLSelectElement).value).toBe(Category.APPETIZER);
+    await waitFor(() => {
+      expect((screen.getByLabelText(/name/i) as HTMLInputElement).value).toBe('New Item');
+      expect((screen.getByLabelText(/price/i) as HTMLInputElement).value).toBe('12.5');
+      expect((screen.getByLabelText(/category/i) as HTMLSelectElement).value).toBe(Category.APPETIZER);
+    });
   });
 
   it('renders cancel and submit buttons', () => {

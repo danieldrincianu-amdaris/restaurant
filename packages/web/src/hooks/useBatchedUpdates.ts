@@ -48,7 +48,11 @@ export function useBatchedUpdates<T>({
   onFlush,
   windowMs = 100,
   maxBatchSize = 50,
-}: UseBatchedUpdatesOptions<T>) {
+}: UseBatchedUpdatesOptions<T>): {
+  addUpdate: (payload: T) => void;
+  flush: () => void;
+  getBatchSize: () => number;
+} {
   const batchRef = useRef<BatchedUpdate<T>[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const onFlushRef = useRef(onFlush);

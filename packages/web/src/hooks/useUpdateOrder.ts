@@ -22,7 +22,14 @@ interface UpdateOrderItemInput {
   specialInstructions?: string;
 }
 
-export function useUpdateOrder() {
+export function useUpdateOrder(): {
+  updateOrder: (orderId: string, data: UpdateOrderInput) => Promise<Order | null>;
+  addOrderItem: (orderId: string, data: AddOrderItemInput) => Promise<Order | null>;
+  updateOrderItem: (orderId: string, itemId: string, data: UpdateOrderItemInput) => Promise<Order | null>;
+  removeOrderItem: (orderId: string, itemId: string) => Promise<Order | null>;
+  isUpdating: boolean;
+  error: string | null;
+} {
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

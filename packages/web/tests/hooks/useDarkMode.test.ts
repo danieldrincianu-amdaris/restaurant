@@ -5,8 +5,8 @@ import { useDarkMode } from '../../src/hooks/useDarkMode';
 const STORAGE_KEY = 'kitchen-dark-mode';
 
 describe('useDarkMode', () => {
-  let getItemSpy: ReturnType<typeof vi.spyOn>;
-  let setItemSpy: ReturnType<typeof vi.spyOn>;
+  let getItemSpy: ReturnType<typeof vi.spyOn<Storage, 'getItem'>>;
+  let setItemSpy: ReturnType<typeof vi.spyOn<Storage, 'setItem'>>;
 
   beforeEach(() => {
     // Clear localStorage and DOM class

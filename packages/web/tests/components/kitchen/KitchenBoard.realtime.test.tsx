@@ -68,6 +68,7 @@ const mockOrder: Order = {
         available: true,
         ingredients: ['beef', 'bun'],
         imageUrl: null,
+        sortOrder: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -80,6 +81,7 @@ describe('KitchenBoard - Real-time Updates', () => {
     vi.clearAllMocks();
     vi.spyOn(useOrdersModule, 'useOrders').mockReturnValue({
       orders: [mockOrder],
+      setOrders: vi.fn(),
       isLoading: false,
       error: null,
       refresh: vi.fn(),

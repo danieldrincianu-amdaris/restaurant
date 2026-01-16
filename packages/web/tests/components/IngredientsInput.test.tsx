@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect } from 'vitest';
 import IngredientsInput from '../../src/components/menu/IngredientsInput';
@@ -32,7 +32,9 @@ describe('IngredientsInput', () => {
     const addButton = screen.getByRole('button', { name: /\+ add/i });
     await user.click(addButton);
     
-    expect(mockOnChange).toHaveBeenCalledWith(['lettuce']);
+    await waitFor(() => {
+      expect(mockOnChange).toHaveBeenCalledWith(['lettuce']);
+    });
   });
 
   it('adds ingredient when pressing Enter key', async () => {
@@ -44,7 +46,9 @@ describe('IngredientsInput', () => {
     await user.type(input, 'onion');
     await user.keyboard('{Enter}');
     
-    expect(mockOnChange).toHaveBeenCalledWith(['onion']);
+    await waitFor(() => {
+      expect(mockOnChange).toHaveBeenCalledWith(['onion']);
+    });
   });
 
   it('removes ingredient when clicking remove button', async () => {
@@ -69,7 +73,9 @@ describe('IngredientsInput', () => {
     const addButton = screen.getByRole('button', { name: /\+ add/i });
     await user.click(addButton);
     
-    expect(mockOnChange).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockOnChange).not.toHaveBeenCalled();
+    });
   });
 
   it('trims whitespace from ingredients', async () => {
@@ -83,7 +89,9 @@ describe('IngredientsInput', () => {
     const addButton = screen.getByRole('button', { name: /\+ add/i });
     await user.click(addButton);
     
-    expect(mockOnChange).toHaveBeenCalledWith(['garlic']);
+    await waitFor(() => {
+      expect(mockOnChange).toHaveBeenCalledWith(['garlic']);
+    });
   });
 
   it('does not add empty ingredients', async () => {

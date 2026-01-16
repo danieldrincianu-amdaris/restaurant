@@ -357,7 +357,9 @@ describe('Orders API', () => {
       expect(res.status).toBe(400);
       expect(res.body.error.code).toBe('MENU_ITEM_UNAVAILABLE');
 
-      // Cleanup
+      // Cleanup - delete order first to avoid FK constraint
+      await prisma.order.delete({ where: { id: order.id } });
+      testOrderId = null;
       await prisma.menuItem.delete({ where: { id: unavailableItem.id } });
     });
 
@@ -437,8 +439,9 @@ describe('Orders API', () => {
       expect(updatedItem.quantity).toBe(3);
       expect(updatedItem.specialInstructions).toBe('Extra sauce');
 
-      // Cleanup - delete orderItem first to avoid foreign key constraint
-      await prisma.orderItem.deleteMany({ where: { menuItemId: menuItem.id } });
+      // Cleanup - delete order first (cascade handles items), then menu item
+      await prisma.order.delete({ where: { id: order.id } });
+      testOrderId = null; // Prevent double deletion in afterEach
       await prisma.menuItem.delete({ where: { id: menuItem.id } });
     });
 
@@ -619,7 +622,7 @@ describe('Orders API', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       const res = await request(app)
-        .patch(`/api/orders/${order.id}/status`)
+        .patch(`/api/orders/${testOrderId}/status`)
         .send({ status: 'IN_PROGRESS' });
 
       expect(res.status).toBe(200);

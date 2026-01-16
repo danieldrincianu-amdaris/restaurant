@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect } from 'vitest';
 import ImageUpload from '../../src/components/menu/ImageUpload';
@@ -46,7 +46,9 @@ describe('ImageUpload', () => {
     const removeButton = screen.getByRole('button', { name: /remove/i });
     await user.click(removeButton);
     
-    expect(mockOnChange).toHaveBeenCalledWith(null);
+    await waitFor(() => {
+      expect(mockOnChange).toHaveBeenCalledWith(null);
+    });
   });
 
   it('shows uploading state when isUploading is true', () => {

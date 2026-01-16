@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useMenuItemsCache } from '../../src/hooks/useMenuItemsCache';
 import { api } from '../../src/lib/api';
-import type { MenuItem } from '@restaurant/shared';
+import type { MenuItem, Category, FoodType } from '@restaurant/shared';
 
 // Mock the API
 vi.mock('../../src/lib/api', () => ({
@@ -13,26 +13,30 @@ vi.mock('../../src/lib/api', () => ({
 
 const mockMenuItems: MenuItem[] = [
   {
-    id: 1,
+    id: '1',
     name: 'Burger',
-    description: 'Delicious burger',
     price: 10.99,
-    categoryId: 1,
-    foodType: 'entree',
+    category: 'MAIN' as Category,
+    foodType: 'MEAT' as FoodType,
     available: true,
     imageUrl: null,
     ingredients: [],
+    sortOrder: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
-    id: 2,
+    id: '2',
     name: 'Fries',
-    description: 'Crispy fries',
     price: 3.99,
-    categoryId: 2,
-    foodType: 'side',
+    category: 'APPETIZER' as Category,
+    foodType: 'OTHER' as FoodType,
     available: true,
     imageUrl: null,
     ingredients: [],
+    sortOrder: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
 

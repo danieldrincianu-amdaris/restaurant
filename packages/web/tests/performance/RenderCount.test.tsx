@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest';
 import OrderCard from '../../src/components/staff/OrderCard';
 import KitchenOrderCard from '../../src/components/kitchen/KitchenOrderCard';
 import MenuItemCard from '../../src/components/staff/MenuItemCard';
-import { Order, OrderStatus, FoodType } from '@restaurant/shared';
+import { Order, OrderStatus, FoodType, Category } from '@restaurant/shared';
 
 // Wrapper component to provide Router context
 function WithRouter({ children }: { children: React.ReactNode }) {
@@ -25,6 +25,7 @@ describe('React.memo Performance Tests', () => {
   const mockOrder: Order = {
     id: 'order-1',
     tableNumber: 5,
+    serverName: 'Test Server',
     status: OrderStatus.PENDING,
     items: [
       { 
@@ -34,16 +35,16 @@ describe('React.memo Performance Tests', () => {
         quantity: 2, 
         specialInstructions: null,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
         menuItem: {
           id: 'menu-1',
           name: 'Test Item',
           price: 10.99,
-          category: 'MAIN' as any,
+          category: Category.MAIN,
           foodType: FoodType.MEAT,
           available: true,
           imageUrl: null,
           ingredients: [],
+          sortOrder: 0,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }
@@ -186,11 +187,12 @@ describe('React.memo Performance Tests', () => {
       id: 'menu-1',
       name: 'Test Item',
       price: 10.99,
-      category: 'MAIN' as any,
+      category: Category.MAIN,
       foodType: FoodType.MEAT,
       available: true,
       imageUrl: null,
       ingredients: [],
+      sortOrder: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };

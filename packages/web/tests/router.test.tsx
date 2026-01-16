@@ -45,7 +45,9 @@ describe('Router', () => {
           ],
         },
       ],
-      { initialEntries: ['/'] }
+      { 
+        initialEntries: ['/'],
+      }
     );
 
     render(<RouterProvider router={router as any} />);
@@ -63,7 +65,9 @@ describe('Router', () => {
           ],
         },
       ],
-      { initialEntries: ['/admin'] }
+      { 
+        initialEntries: ['/admin'],
+      }
     );
 
     render(<RouterProvider router={router as any} />);
@@ -81,7 +85,9 @@ describe('Router', () => {
           ],
         },
       ],
-      { initialEntries: ['/admin/menu'] }
+      { 
+        initialEntries: ['/admin/menu'],
+      }
     );
 
     render(<RouterProvider router={router as any} />);

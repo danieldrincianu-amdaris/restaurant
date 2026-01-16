@@ -66,7 +66,7 @@ describe('MenuFilters', () => {
       />
     );
 
-    const categorySelect = screen.getAllByRole('combobox')[0];
+    const categorySelect = screen.getAllByRole('combobox')[0]!;
     fireEvent.change(categorySelect, { target: { value: Category.APPETIZER } });
 
     expect(mockHandlers.onCategoryChange).toHaveBeenCalledWith(Category.APPETIZER);
@@ -81,7 +81,7 @@ describe('MenuFilters', () => {
       />
     );
 
-    const foodTypeSelect = screen.getAllByRole('combobox')[1];
+    const foodTypeSelect = screen.getAllByRole('combobox')[1]!;
     fireEvent.change(foodTypeSelect, { target: { value: FoodType.PIZZA } });
 
     expect(mockHandlers.onFoodTypeChange).toHaveBeenCalledWith(FoodType.PIZZA);

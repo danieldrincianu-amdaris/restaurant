@@ -12,6 +12,7 @@ const mockMenuItem1: MenuItem = {
   category: Category.APPETIZER,
   foodType: FoodType.SALAD,
   available: true,
+  sortOrder: 0,
   createdAt: '2024-01-01T00:00:00Z',
   updatedAt: '2024-01-01T00:00:00Z',
 };
@@ -25,6 +26,7 @@ const mockMenuItem2: MenuItem = {
   category: Category.MAIN,
   foodType: FoodType.PIZZA,
   available: true,
+  sortOrder: 0,
   createdAt: '2024-01-01T00:00:00Z',
   updatedAt: '2024-01-01T00:00:00Z',
 };
@@ -47,7 +49,7 @@ describe('OrderContext', () => {
       quantity: 1,
       specialInstructions: null,
     });
-    expect(result.current.items[0].menuItem).toEqual(mockMenuItem1);
+    expect(result.current.items[0]!.menuItem).toEqual(mockMenuItem1);
   });
 
   it('increments quantity when adding existing item', () => {
@@ -59,14 +61,14 @@ describe('OrderContext', () => {
       result.current.addItem(mockMenuItem1);
     });
 
-    expect(result.current.items[0].quantity).toBe(1);
+    expect(result.current.items[0]!.quantity).toBe(1);
 
     act(() => {
       result.current.addItem(mockMenuItem1);
     });
 
     expect(result.current.items).toHaveLength(1);
-    expect(result.current.items[0].quantity).toBe(2);
+    expect(result.current.items[0]!.quantity).toBe(2);
   });
 
   it('adds multiple different items', () => {
@@ -80,8 +82,8 @@ describe('OrderContext', () => {
     });
 
     expect(result.current.items).toHaveLength(2);
-    expect(result.current.items[0].menuItemId).toBe('1');
-    expect(result.current.items[1].menuItemId).toBe('2');
+    expect(result.current.items[0]!.menuItemId).toBe('1');
+    expect(result.current.items[1]!.menuItemId).toBe('2');
   });
 
   it('removes item from order', () => {
@@ -101,7 +103,7 @@ describe('OrderContext', () => {
     });
 
     expect(result.current.items).toHaveLength(1);
-    expect(result.current.items[0].menuItemId).toBe('2');
+    expect(result.current.items[0]!.menuItemId).toBe('2');
   });
 
   it('updates item quantity', () => {
@@ -113,13 +115,13 @@ describe('OrderContext', () => {
       result.current.addItem(mockMenuItem1);
     });
 
-    expect(result.current.items[0].quantity).toBe(1);
+    expect(result.current.items[0]!.quantity).toBe(1);
 
     act(() => {
       result.current.updateQuantity('1', 5);
     });
 
-    expect(result.current.items[0].quantity).toBe(5);
+    expect(result.current.items[0]!.quantity).toBe(5);
   });
 
   it('removes item when quantity set to 0', () => {
@@ -149,13 +151,13 @@ describe('OrderContext', () => {
       result.current.addItem(mockMenuItem1);
     });
 
-    expect(result.current.items[0].specialInstructions).toBeNull();
+    expect(result.current.items[0]!.specialInstructions).toBeNull();
 
     act(() => {
       result.current.updateInstructions('1', 'No croutons');
     });
 
-    expect(result.current.items[0].specialInstructions).toBe('No croutons');
+    expect(result.current.items[0]!.specialInstructions).toBe('No croutons');
   });
 
   it('sets table number', () => {

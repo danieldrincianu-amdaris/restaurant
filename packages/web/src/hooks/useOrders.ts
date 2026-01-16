@@ -12,7 +12,13 @@ interface OrdersResponse {
   total: number;
 }
 
-export function useOrders(filters?: OrdersFilters) {
+export function useOrders(filters?: OrdersFilters): {
+  orders: Order[];
+  setOrders: React.Dispatch<React.SetStateAction<Order[]>>;
+  isLoading: boolean;
+  error: string | null;
+  refresh: () => void;
+} {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

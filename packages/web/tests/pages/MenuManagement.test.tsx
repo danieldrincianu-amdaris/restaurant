@@ -30,6 +30,7 @@ const mockMenuItems: MenuItem[] = [
     category: Category.APPETIZER,
     foodType: FoodType.SALAD,
     available: true,
+    sortOrder: 0,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },

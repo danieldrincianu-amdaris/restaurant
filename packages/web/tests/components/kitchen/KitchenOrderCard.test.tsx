@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { Order, OrderStatus } from '@restaurant/shared';
+import { Order, OrderStatus, Category, FoodType } from '@restaurant/shared';
 import KitchenOrderCard from '../../../src/components/kitchen/KitchenOrderCard';
 
 // Mock the useElapsedTime hook
@@ -58,9 +58,10 @@ describe('KitchenOrderCard', () => {
           price: 12.99,
           ingredients: [],
           imageUrl: null,
-          category: 'MAIN',
-          foodType: 'PIZZA',
+          category: Category.MAIN,
+          foodType: FoodType.PIZZA,
           available: true,
+          sortOrder: 0,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -205,7 +206,7 @@ describe('KitchenOrderCard', () => {
       ...mockOrder,
       items: [
         {
-          ...mockOrder.items[0],
+          ...mockOrder.items[0]!,
           specialInstructions: 'No olives',
         },
       ],

@@ -5,7 +5,7 @@ import { OrderService } from '../services/order.service.js';
 import { createOrderSchema, updateOrderSchema } from '../schemas/order.schema.js';
 import { addOrderItemSchema, updateOrderItemSchema } from '../schemas/order-item.schema.js';
 import { updateStatusSchema } from '../schemas/order-status.schema.js';
-import { notFound } from '../utils/errors.js';
+import { notFound, invalidInput } from '@restaurant/shared';
 import { sendSuccess } from '../utils/response.js';
 
 export function createOrderRoutes(prisma: PrismaClient, io: SocketIOServer): Router {
@@ -165,11 +165,11 @@ export function createOrderRoutes(prisma: PrismaClient, io: SocketIOServer): Rou
       const { orderIds, status } = req.body;
       
       if (!Array.isArray(orderIds) || orderIds.length === 0) {
-        return res.status(400).json({ error: 'orderIds must be a non-empty array' });
+        throw invalidInput('orderIds must be a non-empty array');
       }
       
       if (typeof status !== 'string') {
-        return res.status(400).json({ error: 'status is required' });
+        throw invalidInput('status is required');
       }
       
       const updatedOrders = await orderService.bulkUpdateStatus(orderIds, status);

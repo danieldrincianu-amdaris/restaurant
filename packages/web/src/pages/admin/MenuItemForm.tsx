@@ -1,6 +1,6 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Category, FoodType } from '@restaurant/shared';
+import { Category, FoodType, validatePrice, validateRequiredString } from '@restaurant/shared';
 import { useMenuItem } from '../../hooks/useMenuItem';
 import { useCreateMenuItem } from '../../hooks/useCreateMenuItem';
 import { useUpdateMenuItem } from '../../hooks/useUpdateMenuItem';
@@ -81,14 +81,16 @@ export default function MenuItemForm() {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
+    // Validate name using shared validation
+    const nameResult = validateRequiredString(formData.name, 'Name');
+    if (!nameResult.valid) {
+      newErrors.name = nameResult.error;
     }
 
-    if (!formData.price || parseFloat(formData.price) <= 0) {
-      newErrors.price = 'Price must be greater than 0';
-    } else if (!/^\d+(\.\d{0,2})?$/.test(formData.price)) {
-      newErrors.price = 'Price must have at most 2 decimal places';
+    // Validate price using shared validation
+    const priceResult = validatePrice(formData.price);
+    if (!priceResult.valid) {
+      newErrors.price = priceResult.error;
     }
 
     if (!formData.category) {

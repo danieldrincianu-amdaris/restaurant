@@ -118,7 +118,7 @@ function getShortcutKeyFromEvent(event: KeyboardEvent): string {
 /**
  * Hook to get all registered keyboard shortcuts for display in help
  */
-export function useGetShortcuts(shortcuts: KeyboardShortcut[]) {
+export function useGetShortcuts(shortcuts: KeyboardShortcut[]): Array<KeyboardShortcut & { displayKey: string }> {
   return shortcuts.map(shortcut => ({
     ...shortcut,
     displayKey: formatShortcutDisplay(shortcut),

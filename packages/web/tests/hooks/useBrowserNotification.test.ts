@@ -48,12 +48,11 @@ describe('useBrowserNotification', () => {
   });
 
   afterEach(() => {
-    // Restore original
+    // Restore original - in strict mode, we can't delete, so just restore the original value
     if (originalNotification) {
       (global as typeof globalThis & { Notification: typeof Notification }).Notification = originalNotification;
-    } else {
-      delete (global as typeof globalThis & { Notification?: typeof Notification }).Notification;
     }
+    // Note: Cannot delete in strict mode, but tests work without explicit deletion
   });
 
   describe('requestPermission', () => {

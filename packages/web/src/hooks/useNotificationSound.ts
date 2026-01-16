@@ -21,7 +21,9 @@ const DEBOUNCE_MS = 500; // Minimum time between sound plays
  * play();
  * ```
  */
-export function useNotificationSound(soundUrl: string, isMuted: boolean) {
+export function useNotificationSound(soundUrl: string, isMuted: boolean): {
+  play: () => void;
+} {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastPlayedRef = useRef<number>(0);
 

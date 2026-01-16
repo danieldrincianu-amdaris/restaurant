@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { OrderItem, OrderStatus } from '@restaurant/shared';
+import { OrderItem, OrderStatus, Category, FoodType } from '@restaurant/shared';
 import OrderItemsList from '../../../src/components/kitchen/OrderItemsList';
 
 describe('OrderItemsList', () => {
@@ -22,9 +22,10 @@ describe('OrderItemsList', () => {
       price: 10.99,
       ingredients: [],
       imageUrl: null,
-      category: 'MAIN',
-      foodType: 'MEAT',
+      category: Category.MAIN,
+      foodType: FoodType.MEAT,
       available: true,
+      sortOrder: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     },

@@ -3,7 +3,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { CreateOrderInput, UpdateOrderInput } from '../schemas/order.schema.js';
 import { AddOrderItemInput, UpdateOrderItemInput } from '../schemas/order-item.schema.js';
 import { UpdateStatusInput, STATUS_TRANSITIONS } from '../schemas/order-status.schema.js';
-import { AppError, invalidStatusTransition } from '../utils/errors.js';
+import { AppError, invalidStatusTransition } from '@restaurant/shared';
 import { SOCKET_EVENTS } from '@restaurant/shared';
 
 export interface OrderFilters {
@@ -310,7 +310,7 @@ export class OrderService {
     });
 
     if (orders.length !== orderIds.length) {
-      throw new AppError('One or more orders not found', 404);
+      throw new AppError('NOT_FOUND', 'One or more orders not found', 404);
     }
 
     // Validate all transitions are valid
@@ -326,7 +326,7 @@ export class OrderService {
       orders.map((order) =>
         this.prisma.order.update({
           where: { id: order.id },
-          data: { status: newStatus },
+          data: { status: newStatus as any },
           include: orderWithItems,
         })
       )

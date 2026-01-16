@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { PrismaClient, Category, FoodType } from '@prisma/client';
 import { MenuService } from '../services/menu.service.js';
 import { createMenuItemSchema, updateMenuItemSchema } from '../schemas/menu-item.schema.js';
-import { notFound } from '../utils/errors.js';
+import { notFound, invalidInput } from '@restaurant/shared';
 import { sendSuccess } from '../utils/response.js';
 
 export function createMenuItemRoutes(prisma: PrismaClient): Router {
@@ -95,10 +95,7 @@ export function createMenuItemRoutes(prisma: PrismaClient): Router {
       const { orderedIds } = req.body;
 
       if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
-        return res.status(400).json({
-          success: false,
-          error: 'orderedIds must be a non-empty array of menu item IDs',
-        });
+        throw invalidInput('orderedIds must be a non-empty array of menu item IDs');
       }
 
       const items = await menuService.reorderMenuItems(orderedIds);

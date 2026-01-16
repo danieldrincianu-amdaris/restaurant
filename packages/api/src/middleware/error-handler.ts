@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import { MulterError } from 'multer';
-import { AppError } from '../utils/errors.js';
+import { AppError, ErrorCode } from '@restaurant/shared';
 
 export function errorHandler(
   error: Error,
@@ -23,7 +23,7 @@ export function errorHandler(
   if (error instanceof ZodError) {
     return res.status(400).json({
       error: {
-        code: 'VALIDATION_ERROR',
+        code: ErrorCode.VALIDATION_ERROR,
         message: 'Invalid request data',
         details: error.issues,
       },
@@ -34,7 +34,7 @@ export function errorHandler(
     if (error.code === 'LIMIT_FILE_SIZE') {
       return res.status(413).json({
         error: {
-          code: 'FILE_TOO_LARGE',
+          code: ErrorCode.FILE_TOO_LARGE,
           message: 'File size exceeds maximum allowed (5MB)',
         },
       });
@@ -43,7 +43,7 @@ export function errorHandler(
 
   res.status(500).json({
     error: {
-      code: 'INTERNAL_ERROR',
+      code: ErrorCode.INTERNAL_ERROR,
       message: 'An unexpected error occurred',
     },
   });

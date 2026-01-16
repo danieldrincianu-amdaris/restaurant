@@ -34,6 +34,7 @@ describe('useOrder', () => {
           category: Category.MAIN,
           imageUrl: null,
           available: true,
+          sortOrder: 0,
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
         },

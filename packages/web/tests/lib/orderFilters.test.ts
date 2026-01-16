@@ -48,7 +48,7 @@ describe('orderFilters', () => {
       const result = filterRecentCompleted(orders, 30);
 
       expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('1');
+      expect(result[0]!.id).toBe('1');
     });
 
     it('excludes non-completed orders', () => {
@@ -61,7 +61,7 @@ describe('orderFilters', () => {
       const result = filterRecentCompleted(orders, 30);
 
       expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('3');
+      expect(result[0]!.id).toBe('3');
     });
 
     it('uses default 30 minute window', () => {
@@ -73,7 +73,7 @@ describe('orderFilters', () => {
       const result = filterRecentCompleted(orders);
 
       expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('1');
+      expect(result[0]!.id).toBe('1');
     });
   });
 

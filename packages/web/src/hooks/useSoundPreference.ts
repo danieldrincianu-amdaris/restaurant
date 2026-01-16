@@ -25,7 +25,10 @@ const STORAGE_KEY = 'kitchen.soundMuted';
  * }
  * ```
  */
-export function useSoundPreference() {
+export function useSoundPreference(): {
+  isMuted: boolean;
+  toggleMute: () => void;
+} {
   const [isMuted, setIsMuted] = useState<boolean>(() => {
     // Read initial state from localStorage
     const stored = localStorage.getItem(STORAGE_KEY);
