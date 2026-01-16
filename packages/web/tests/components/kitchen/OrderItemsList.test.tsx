@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { OrderItem, OrderStatus, Category, FoodType } from '@restaurant/shared';
+import { OrderItem, Category, FoodType } from '@restaurant/shared';
 import OrderItemsList from '../../../src/components/kitchen/OrderItemsList';
 
 describe('OrderItemsList', () => {

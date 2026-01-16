@@ -136,7 +136,7 @@ describe('OrderBuilder', () => {
       // Add item on mount - empty deps to run once
       useEffect(() => {
         addItem(mockMenuItem);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
       }, []);
 
       return <OrderBuilder />;
@@ -156,7 +156,7 @@ describe('OrderBuilder', () => {
       useEffect(() => {
         addItem(mockMenuItem);
         addItem(mockMenuItem);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
       }, []);
 
       return <OrderBuilder />;
@@ -194,7 +194,7 @@ describe('OrderBuilder', () => {
       useEffect(() => {
         addItem(mockMenuItem);
         setServerName('John');
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
       }, []);
 
       return <OrderBuilder />;
@@ -213,7 +213,7 @@ describe('OrderBuilder', () => {
       useEffect(() => {
         addItem(mockMenuItem);
         setTableNumber(5);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
       }, []);
 
       return <OrderBuilder />;
@@ -233,7 +233,7 @@ describe('OrderBuilder', () => {
         addItem(mockMenuItem);
         setTableNumber(5);
         setServerName('John');
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
       }, []);
 
       return <OrderBuilder />;
@@ -252,7 +252,7 @@ describe('OrderBuilder', () => {
       
       useEffect(() => {
         addItem(mockMenuItem);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
       }, []);
 
       return <OrderBuilder />;
@@ -275,7 +275,7 @@ describe('OrderBuilder', () => {
       
       useEffect(() => {
         addItem(mockMenuItem);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+
       }, []);
 
       return (

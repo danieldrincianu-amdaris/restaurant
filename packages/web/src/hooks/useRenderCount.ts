@@ -41,7 +41,6 @@ export function useRenderCount(
     const now = Date.now();
 
     // Update global stats
-    const existing = renderStats.get(componentName);
     const info: RenderInfo = {
       component: componentName,
       renderCount: renderCountRef.current,

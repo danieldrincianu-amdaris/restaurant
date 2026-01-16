@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { beforeAll, afterAll } from 'vitest';
 
 // Suppress React Router v7 future flag warnings globally in tests
 // by patching console.warn

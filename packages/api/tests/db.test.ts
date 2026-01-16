@@ -1,6 +1,6 @@
 ﻿import 'dotenv/config';
-import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
-import { prisma, connectDatabase, disconnectDatabase } from '../src/lib/prisma.js';
+import { describe, it, expect } from 'vitest';
+import { prisma, connectDatabase } from '../src/lib/prisma.js';
 import { Category, FoodType } from '@prisma/client';
 
 describe('Database Connection', () => {

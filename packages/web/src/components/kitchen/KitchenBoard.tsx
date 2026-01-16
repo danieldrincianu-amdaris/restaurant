@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Order, OrderStatus, STATUS_TRANSITIONS } from '@restaurant/shared';
+import { Order, OrderStatus } from '@restaurant/shared';
 import { useOrders } from '../../hooks/useOrders';
 import { useOrderEvents } from '../../hooks/useOrderEvents';
 import { useNotificationSound } from '../../hooks/useNotificationSound';

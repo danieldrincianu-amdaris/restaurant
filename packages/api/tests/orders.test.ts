@@ -294,7 +294,7 @@ describe('Orders API', () => {
           status: 'PENDING',
         },
       });
-      testOrderId = order.id;
+      // testOrderId removed for test isolation
 
       const res = await request(app)
         .post(`/api/orders/${order.id}/items`)
@@ -310,13 +310,16 @@ describe('Orders API', () => {
       expect(res.body.data.items[0].menuItemId).toBe(testMenuItemId);
       expect(res.body.data.items[0].quantity).toBe(2);
       expect(res.body.data.items[0].specialInstructions).toBe('No olives');
+
+      // Cleanup
+      await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
     });
 
     it('should return 400 for quantity less than 1', async () => {
       const order = await prisma.order.create({
         data: { tableNumber: 11, serverName: 'Bob', status: 'PENDING' },
       });
-      testOrderId = order.id;
+      // testOrderId removed for test isolation
 
       const res = await request(app)
         .post(`/api/orders/${order.id}/items`)
@@ -345,7 +348,6 @@ describe('Orders API', () => {
       const order = await prisma.order.create({
         data: { tableNumber: 12, serverName: 'Carol', status: 'PENDING' },
       });
-      testOrderId = order.id;
 
       const res = await request(app)
         .post(`/api/orders/${order.id}/items`)
@@ -358,16 +360,14 @@ describe('Orders API', () => {
       expect(res.body.error.code).toBe('MENU_ITEM_UNAVAILABLE');
 
       // Cleanup - delete order first to avoid FK constraint
-      await prisma.order.delete({ where: { id: order.id } });
-      testOrderId = null;
-      await prisma.menuItem.delete({ where: { id: unavailableItem.id } });
+      await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
+      await prisma.menuItem.delete({ where: { id: unavailableItem.id } }).catch(() => {});
     });
 
     it('should return 400 for non-existent menu item', async () => {
       const order = await prisma.order.create({
         data: { tableNumber: 13, serverName: 'Dave', status: 'PENDING' },
       });
-      testOrderId = order.id;
 
       const res = await request(app)
         .post(`/api/orders/${order.id}/items`)
@@ -378,6 +378,9 @@ describe('Orders API', () => {
 
       expect(res.status).toBe(400);
       expect(res.body.error.code).toBe('MENU_ITEM_NOT_FOUND');
+
+      // Cleanup
+      await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
     });
 
     it('should return 404 for non-existent order', async () => {
@@ -421,7 +424,6 @@ describe('Orders API', () => {
         },
         include: { items: true },
       });
-      testOrderId = order.id;
 
       const itemId = order.items[0].id;
 
@@ -441,7 +443,6 @@ describe('Orders API', () => {
 
       // Cleanup - delete order first (cascade handles items), then menu item
       await prisma.order.delete({ where: { id: order.id } });
-      testOrderId = null; // Prevent double deletion in afterEach
       await prisma.menuItem.delete({ where: { id: menuItem.id } });
     });
 
@@ -458,7 +459,7 @@ describe('Orders API', () => {
       const order = await prisma.order.create({
         data: { tableNumber: 21, serverName: 'Frank', status: 'PENDING' },
       });
-      testOrderId = order.id;
+      // testOrderId removed for test isolation
 
       const res = await request(app)
         .put(`/api/orders/${order.id}/items/nonexistent123`)
@@ -497,7 +498,7 @@ describe('Orders API', () => {
         },
         include: { items: true },
       });
-      testOrderId = order.id;
+      // testOrderId removed for test isolation
 
       const itemId = order.items[0].id;
 
@@ -526,7 +527,7 @@ describe('Orders API', () => {
       const order = await prisma.order.create({
         data: { tableNumber: 31, serverName: 'Hank', status: 'PENDING' },
       });
-      testOrderId = order.id;
+      // testOrderId removed for test isolation
 
       const res = await request(app).delete(`/api/orders/${order.id}/items/nonexistent123`);
 
@@ -561,7 +562,7 @@ describe('Orders API', () => {
       const order = await prisma.order.create({
         data: { tableNumber: 41, serverName: 'Jane', status: 'PENDING' },
       });
-      testOrderId = order.id;
+      // testOrderId removed for test isolation
 
       const res = await request(app)
         .patch(`/api/orders/${order.id}/status`)
@@ -575,7 +576,6 @@ describe('Orders API', () => {
       const order = await prisma.order.create({
         data: { tableNumber: 42, serverName: 'Kevin', status: 'COMPLETED' },
       });
-      testOrderId = order.id;
 
       const res = await request(app)
         .patch(`/api/orders/${order.id}/status`)
@@ -584,13 +584,15 @@ describe('Orders API', () => {
       expect(res.status).toBe(400);
       expect(res.body.error.code).toBe('INVALID_STATUS_TRANSITION');
       expect(res.body.error.message).toContain('Cannot transition from COMPLETED to IN_PROGRESS');
+
+      // Cleanup
+      await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
     });
 
     it('should return 400 for invalid transition CANCELED to PENDING', async () => {
       const order = await prisma.order.create({
         data: { tableNumber: 43, serverName: 'Laura', status: 'CANCELED' },
       });
-      testOrderId = order.id;
 
       const res = await request(app)
         .patch(`/api/orders/${order.id}/status`)
@@ -599,6 +601,9 @@ describe('Orders API', () => {
       expect(res.status).toBe(400);
       expect(res.body.error.code).toBe('INVALID_STATUS_TRANSITION');
       expect(res.body.error.message).toContain('Cannot transition from CANCELED to PENDING');
+
+      // Cleanup
+      await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
     });
 
     it('should return 404 for non-existent order', async () => {
@@ -614,7 +619,6 @@ describe('Orders API', () => {
       const order = await prisma.order.create({
         data: { tableNumber: 44, serverName: 'Mike', status: 'PENDING' },
       });
-      testOrderId = order.id;
 
       const originalUpdatedAt = order.updatedAt;
 
@@ -622,13 +626,16 @@ describe('Orders API', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       const res = await request(app)
-        .patch(`/api/orders/${testOrderId}/status`)
+        .patch(`/api/orders/${order.id}/status`)
         .send({ status: 'IN_PROGRESS' });
 
       expect(res.status).toBe(200);
       expect(new Date(res.body.data.updatedAt).getTime()).toBeGreaterThan(
         originalUpdatedAt.getTime()
       );
+
+      // Clean up immediately
+      await prisma.order.delete({ where: { id: order.id } }).catch(() => {});
     });
 
     it('should test full workflow PENDING to IN_PROGRESS to COMPLETED', async () => {
@@ -636,7 +643,6 @@ describe('Orders API', () => {
       const order = await prisma.order.create({
         data: { tableNumber: 45, serverName: 'Nancy', status: 'PENDING' },
       });
-      testOrderId = order.id;
 
       // Transition to IN_PROGRESS
       const res1 = await request(app)

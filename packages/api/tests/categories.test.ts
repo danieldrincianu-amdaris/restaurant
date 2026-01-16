@@ -5,7 +5,6 @@ import request from 'supertest';
 import { Express } from 'express';
 import { createApp } from '../src/app.js';
 import { prisma, connectDatabase, disconnectDatabase } from '../src/lib/prisma.js';
-import { Category } from '@prisma/client';
 
 describe('Categories API', () => {
   let app: Express;

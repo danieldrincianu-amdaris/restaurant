@@ -12,6 +12,7 @@ import request from 'supertest';
 describe('Order Events Broadcasting', () => {
   let httpServer: HTTPServer;
   let app: Express;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let io: SocketIOServer;
   let prisma: PrismaClient;
   let client: ClientSocket;
