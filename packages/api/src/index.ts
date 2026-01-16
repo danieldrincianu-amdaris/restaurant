@@ -28,7 +28,8 @@ async function bootstrap() {
   httpServer.listen(config.port, () => {
     console.log(`🚀 Server running on http://localhost:${config.port}`);
     console.log(`📋 Health check: http://localhost:${config.port}/api/health`);
-    console.log(`🔌 WebSocket server ready`);
+    console.log(`� API Docs: http://localhost:${config.port}/api/docs`);
+    console.log(`�🔌 WebSocket server ready`);
   });
 
   // Graceful shutdown

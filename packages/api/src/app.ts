@@ -3,6 +3,8 @@ import cors from 'cors';
 import { Server as HTTPServer } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import { PrismaClient } from '@prisma/client';
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.js';
 import { config } from './config/index.js';
 import { createRoutes } from './routes/index.js';
 import { errorHandler } from './middleware/error-handler.js';
@@ -22,6 +24,12 @@ export function createApp(prisma: PrismaClient, httpServer: HTTPServer): { app: 
   
   // Setup Socket.io event handlers
   setupSocketHandlers(io);
+
+  // Swagger API documentation
+  app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'RestaurantFlow API Documentation',
+  }));
 
   // Routes (now io is available)
   app.use('/api', createRoutes(prisma, io));

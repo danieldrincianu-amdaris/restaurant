@@ -9,7 +9,47 @@ export function createMenuItemRoutes(prisma: PrismaClient): Router {
   const router = Router();
   const menuService = new MenuService(prisma);
 
-  // GET /api/menu-items - List all menu items with optional filters
+  /**
+   * @swagger
+   * /api/menu-items:
+   *   get:
+   *     summary: List all menu items
+   *     description: Retrieve all menu items with optional filtering
+   *     tags: [Menu Items]
+   *     parameters:
+   *       - in: query
+   *         name: category
+   *         schema:
+   *           type: string
+   *           enum: [APPETIZER, MAIN, DRINK, DESSERT]
+   *         description: Filter by category
+   *       - in: query
+   *         name: foodType
+   *         schema:
+   *           type: string
+   *           enum: [MEAT, PASTA, PIZZA, SEAFOOD, VEGETARIAN, SALAD, SOUP, SANDWICH, COFFEE, BEVERAGE, OTHER]
+   *         description: Filter by food type
+   *       - in: query
+   *         name: available
+   *         schema:
+   *           type: boolean
+   *         description: Filter by availability
+   *     responses:
+   *       200:
+   *         description: List of menu items
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/MenuItem'
+   */
   router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { category, foodType, available } = req.query;
@@ -32,7 +72,70 @@ export function createMenuItemRoutes(prisma: PrismaClient): Router {
     }
   });
 
-  // POST /api/menu-items - Create a new menu item
+  /**
+   * @swagger
+   * /api/menu-items:
+   *   post:
+   *     summary: Create a new menu item
+   *     description: Add a new item to the menu
+   *     tags: [Menu Items]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - name
+   *               - price
+   *               - ingredients
+   *               - category
+   *               - foodType
+   *             properties:
+   *               name:
+   *                 type: string
+   *                 example: "Margherita Pizza"
+   *               price:
+   *                 type: number
+   *                 format: decimal
+   *                 example: 12.99
+   *               ingredients:
+   *                 type: array
+   *                 items:
+   *                   type: string
+   *                 example: ["tomato sauce", "mozzarella", "basil"]
+   *               imageUrl:
+   *                 type: string
+   *                 nullable: true
+   *               category:
+   *                 type: string
+   *                 enum: [APPETIZER, MAIN, DRINK, DESSERT]
+   *               foodType:
+   *                 type: string
+   *                 enum: [MEAT, PASTA, PIZZA, SEAFOOD, VEGETARIAN, SALAD, SOUP, SANDWICH, COFFEE, BEVERAGE, OTHER]
+   *               available:
+   *                 type: boolean
+   *                 default: true
+   *     responses:
+   *       201:
+   *         description: Menu item created successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   $ref: '#/components/schemas/MenuItem'
+   *       400:
+   *         description: Invalid input
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   */
   router.post('/', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = createMenuItemSchema.parse(req.body);
@@ -43,7 +146,40 @@ export function createMenuItemRoutes(prisma: PrismaClient): Router {
     }
   });
 
-  // GET /api/menu-items/:id - Get a single menu item by ID
+  /**
+   * @swagger
+   * /api/menu-items/{id}:
+   *   get:
+   *     summary: Get a single menu item by ID
+   *     description: Retrieve detailed information about a specific menu item
+   *     tags: [Menu Items]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Menu Item ID
+   *     responses:
+   *       200:
+   *         description: Menu item details
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   $ref: '#/components/schemas/MenuItem'
+   *       404:
+   *         description: Menu item not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   */
   router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const item = await menuService.getMenuItemById(req.params['id']!);
@@ -58,7 +194,67 @@ export function createMenuItemRoutes(prisma: PrismaClient): Router {
     }
   });
 
-  // PUT /api/menu-items/:id - Update a menu item
+  /**
+   * @swagger
+   * /api/menu-items/{id}:
+   *   put:
+   *     summary: Update a menu item
+   *     description: Update menu item details
+   *     tags: [Menu Items]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Menu Item ID
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               name:
+   *                 type: string
+   *               price:
+   *                 type: number
+   *                 format: decimal
+   *               ingredients:
+   *                 type: array
+   *                 items:
+   *                   type: string
+   *               imageUrl:
+   *                 type: string
+   *                 nullable: true
+   *               category:
+   *                 type: string
+   *                 enum: [APPETIZER, MAIN, DRINK, DESSERT]
+   *               foodType:
+   *                 type: string
+   *                 enum: [MEAT, PASTA, PIZZA, SEAFOOD, VEGETARIAN, SALAD, SOUP, SANDWICH, COFFEE, BEVERAGE, OTHER]
+   *               available:
+   *                 type: boolean
+   *     responses:
+   *       200:
+   *         description: Menu item updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   $ref: '#/components/schemas/MenuItem'
+   *       404:
+   *         description: Menu item not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   */
   router.put('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const validated = updateMenuItemSchema.parse(req.body);
@@ -74,7 +270,40 @@ export function createMenuItemRoutes(prisma: PrismaClient): Router {
     }
   });
 
-  // DELETE /api/menu-items/:id - Delete a menu item
+  /**
+   * @swagger
+   * /api/menu-items/{id}:
+   *   delete:
+   *     summary: Delete a menu item
+   *     description: Permanently remove a menu item
+   *     tags: [Menu Items]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Menu Item ID
+   *     responses:
+   *       200:
+   *         description: Menu item deleted successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   $ref: '#/components/schemas/MenuItem'
+   *       404:
+   *         description: Menu item not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   */
   router.delete('/:id', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const item = await menuService.deleteMenuItem(req.params['id']!);
@@ -89,7 +318,50 @@ export function createMenuItemRoutes(prisma: PrismaClient): Router {
     }
   });
 
-  // PATCH /api/menu-items/reorder - Reorder menu items
+  /**
+   * @swagger
+   * /api/menu-items/reorder:
+   *   patch:
+   *     summary: Reorder menu items
+   *     description: Update the display order of menu items
+   *     tags: [Menu Items]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - orderedIds
+   *             properties:
+   *               orderedIds:
+   *                 type: array
+   *                 items:
+   *                   type: string
+   *                 example: ["item1-id", "item2-id", "item3-id"]
+   *                 description: Array of menu item IDs in desired display order
+   *     responses:
+   *       200:
+   *         description: Menu items reordered successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                   example: true
+   *                 data:
+   *                   type: array
+   *                   items:
+   *                     $ref: '#/components/schemas/MenuItem'
+   *       400:
+   *         description: Invalid input
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   */
   router.patch('/reorder', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { orderedIds } = req.body;
