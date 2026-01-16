@@ -260,6 +260,67 @@ describe('Orders API', () => {
       expect(res.status).toBe(404);
       expect(res.body.error.code).toBe('NOT_FOUND');
     });
+
+    it('should cascade delete order items when deleting order', async () => {
+      // Create a menu item for testing
+      const menuItem = await prisma.menuItem.create({
+        data: {
+          name: 'Test Item for Cascade',
+          price: 10.00,
+          ingredients: ['test ingredient'],
+          category: 'APPETIZER',
+          foodType: 'OTHER',
+          available: true,
+        },
+      });
+
+      // Create order with items
+      const order = await prisma.order.create({
+        data: {
+          tableNumber: 99,
+          serverName: 'Cascade Test',
+          status: 'PENDING',
+          items: {
+            create: [
+              {
+                menuItemId: menuItem.id,
+                quantity: 2,
+                specialInstructions: 'Test item 1',
+              },
+              {
+                menuItemId: menuItem.id,
+                quantity: 1,
+                specialInstructions: 'Test item 2',
+              },
+            ],
+          },
+        },
+        include: {
+          items: true,
+        },
+      });
+
+      const itemIds = order.items.map(item => item.id);
+
+      // Delete the order
+      const res = await request(app).delete(`/api/orders/${order.id}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.data.id).toBe(order.id);
+
+      // Verify order is deleted
+      const deletedOrder = await prisma.order.findUnique({ where: { id: order.id } });
+      expect(deletedOrder).toBeNull();
+
+      // Verify order items are cascade deleted
+      for (const itemId of itemIds) {
+        const deletedItem = await prisma.orderItem.findUnique({ where: { id: itemId } });
+        expect(deletedItem).toBeNull();
+      }
+
+      // Cleanup menu item
+      await prisma.menuItem.delete({ where: { id: menuItem.id } });
+    });
   });
 
   describe('POST /api/orders/:id/items', () => {
