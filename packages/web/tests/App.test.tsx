@@ -11,7 +11,8 @@ describe('App', () => {
   it('renders navigation links', () => {
     render(<App />);
     expect(screen.getByText('Home')).toBeInTheDocument();
-    expect(screen.getByText('Admin')).toBeInTheDocument();
-    expect(screen.getByText('Menu Management')).toBeInTheDocument();
+    expect(screen.getByText('+ New Order')).toBeInTheDocument();
+    expect(screen.getByText('Menu')).toBeInTheDocument();
+    expect(screen.getByText('Orders')).toBeInTheDocument();
   });
 });

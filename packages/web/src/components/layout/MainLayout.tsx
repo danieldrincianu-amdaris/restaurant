@@ -12,7 +12,7 @@ function MainLayout() {
             <div className="flex items-center">
               <h1 className="text-xl font-bold text-primary dark:text-blue-400">🍽️ RestaurantFlow</h1>
             </div>
-            <nav className="flex items-center space-x-8">
+            <nav className="flex items-center space-x-4">
               <Link 
                 to="/" 
                 className="text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
@@ -20,22 +20,22 @@ function MainLayout() {
                 Home
               </Link>
               <Link 
-                to="/admin" 
+                to="/staff/orders/new" 
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
+              >
+                + New Order
+              </Link>
+              <Link 
+                to="/staff/orders" 
                 className="text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
-                Admin
+                Orders
               </Link>
               <Link 
                 to="/admin/menu" 
                 className="text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
-                Menu Management
-              </Link>
-              <Link 
-                to="/staff/orders/new" 
-                className="text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Staff Orders
+                Menu
               </Link>
               <Link 
                 to="/kitchen" 

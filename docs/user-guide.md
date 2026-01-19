@@ -48,13 +48,18 @@ The application supports both **light** and **dark** modes. The display mode fol
 
 ## Home Page
 
-When you first open RestaurantFlow, you'll see the home page with three main options:
+When you first open RestaurantFlow, you'll see the home page with quick access options:
 
 | Button | Description |
 |--------|-------------|
 | **Staff Portal** | For servers and front-of-house staff to manage orders |
 | **Kitchen Display** | For kitchen staff to view and process orders |
-| **Admin Dashboard** | For managers to manage the menu |
+
+The header navigation bar provides quick access to all areas:
+- **+ New Order** (green button) — Quickly start a new order
+- **Orders** — View and manage all orders
+- **Menu** — Manage menu items (admin)
+- **👨‍🍳 Kitchen** — Access kitchen display
 
 Click the appropriate button based on your role.
 
@@ -209,11 +214,11 @@ For high-volume periods, you can update multiple orders at once:
 
 ---
 
-## Menu Management (Admin)
+## Menu Management
 
-The Admin Dashboard allows managers to manage the restaurant's menu.
+The Menu page allows managers to manage the restaurant's menu items.
 
-**URL:** `/admin`
+**URL:** `/admin/menu`
 
 ### Viewing Menu Items
 

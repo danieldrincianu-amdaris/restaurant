@@ -1,7 +1,6 @@
-import { createBrowserRouter, type RouteObject } from 'react-router-dom';
+import { createBrowserRouter, Navigate, type RouteObject } from 'react-router-dom';
 import MainLayout from '../components/layout/MainLayout';
 import HomePage from '../pages/HomePage';
-import AdminDashboard from '../pages/admin/AdminDashboard';
 import MenuManagement from '../pages/admin/MenuManagement';
 import MenuItemForm from '../pages/admin/MenuItemForm';
 import { NewOrderPage, EditOrderPage, OrdersPage } from '../pages/staff';
@@ -13,7 +12,7 @@ const routes: RouteObject[] = [
     element: <MainLayout />,
     children: [
       { index: true, element: <HomePage /> },
-      { path: 'admin', element: <AdminDashboard /> },
+      { path: 'admin', element: <Navigate to="/admin/menu" replace /> },
       { path: 'admin/menu', element: <MenuManagement /> },
       { path: 'admin/menu/new', element: <MenuItemForm /> },
       { path: 'admin/menu/:id/edit', element: <MenuItemForm /> },
