@@ -107,7 +107,7 @@ describe('KitchenBoard - Notifications Integration', () => {
     );
 
     // Trigger new order
-    (mockUseOrderEvents as any)._triggerCreate(mockOrder);
+    (mockUseOrderEvents as unknown as { _triggerCreate: (order: Order) => void })._triggerCreate(mockOrder);
 
     await waitFor(() => {
       expect(mockPlaySound).toHaveBeenCalledTimes(1);

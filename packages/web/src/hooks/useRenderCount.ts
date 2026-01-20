@@ -48,21 +48,6 @@ export function useRenderCount(
       props,
     };
     renderStats.set(componentName, info);
-
-    // Log to console with styling
-    const color = renderCountRef.current > 10 ? '#ff6b6b' : '#51cf66';
-    console.log(
-      `%c[Render] ${componentName} - Count: ${renderCountRef.current}`,
-      `color: ${color}; font-weight: bold;`,
-      props ? `Props: ${JSON.stringify(props, null, 2)}` : ''
-    );
-
-    // Warn about excessive renders
-    if (renderCountRef.current > 20 && renderCountRef.current % 10 === 0) {
-      console.warn(
-        `⚠️ ${componentName} has rendered ${renderCountRef.current} times. Consider optimization.`
-      );
-    }
   });
 }
 
@@ -112,27 +97,8 @@ export function logRenderStatsSummary(): void {
   const stats = getRenderStatsArray('renderCount');
   
   if (stats.length === 0) {
-    console.log('%c[Performance] No render statistics available', 'color: #868e96;');
     return;
   }
 
-  console.group('%c[Performance] Render Statistics Summary', 'color: #339af0; font-weight: bold; font-size: 14px;');
-  
-  stats.forEach((info) => {
-    const color = info.renderCount > 10 ? '#ff6b6b' : '#51cf66';
-    console.log(
-      `%c${info.component}%c: ${info.renderCount} renders`,
-      `color: ${color}; font-weight: bold;`,
-      'color: inherit;'
-    );
-  });
-  
-  const totalRenders = stats.reduce((sum, info) => sum + info.renderCount, 0);
-  const avgRenders = (totalRenders / stats.length).toFixed(1);
-  
-  console.log(`\n%cTotal Components: ${stats.length}`, 'color: #868e96;');
-  console.log(`%cTotal Renders: ${totalRenders}`, 'color: #868e96;');
-  console.log(`%cAverage Renders/Component: ${avgRenders}`, 'color: #868e96;');
-  
-  console.groupEnd();
+  // Statistics available through getRenderStatsArray
 }

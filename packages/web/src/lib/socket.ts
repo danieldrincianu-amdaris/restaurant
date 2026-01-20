@@ -21,21 +21,6 @@ export function getSocket(): Socket {
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
     });
-
-    // Log connection events in development
-    if (import.meta.env.DEV) {
-      socket.on('connect', () => {
-        console.log('🔌 WebSocket connected:', socket?.id);
-      });
-
-      socket.on('disconnect', (reason) => {
-        console.log('❌ WebSocket disconnected:', reason);
-      });
-
-      socket.on('connect_error', (error) => {
-        console.error('⚠️ WebSocket connection error:', error.message);
-      });
-    }
   }
   
   return socket;
@@ -48,10 +33,6 @@ export function getSocket(): Socket {
 export function subscribeToKitchen(): void {
   const socket = getSocket();
   socket.emit(SOCKET_EVENTS.JOIN_KITCHEN);
-  
-  if (import.meta.env.DEV) {
-    console.log('👨‍🍳 Subscribed to kitchen room');
-  }
 }
 
 /**
@@ -60,10 +41,6 @@ export function subscribeToKitchen(): void {
 export function unsubscribeFromKitchen(): void {
   const socket = getSocket();
   socket.emit(SOCKET_EVENTS.LEAVE_KITCHEN);
-  
-  if (import.meta.env.DEV) {
-    console.log('👨‍🍳 Unsubscribed from kitchen room');
-  }
 }
 
 /**
@@ -73,10 +50,6 @@ export function unsubscribeFromKitchen(): void {
 export function subscribeToOrders(): void {
   const socket = getSocket();
   socket.emit(SOCKET_EVENTS.JOIN_ORDERS);
-  
-  if (import.meta.env.DEV) {
-    console.log('📋 Subscribed to orders room');
-  }
 }
 
 /**
@@ -85,10 +58,6 @@ export function subscribeToOrders(): void {
 export function unsubscribeFromOrders(): void {
   const socket = getSocket();
   socket.emit(SOCKET_EVENTS.LEAVE_ORDERS);
-  
-  if (import.meta.env.DEV) {
-    console.log('📋 Unsubscribed from orders room');
-  }
 }
 
 /**
@@ -98,9 +67,5 @@ export function disconnectSocket(): void {
   if (socket) {
     socket.disconnect();
     socket = null;
-    
-    if (import.meta.env.DEV) {
-      console.log('🔌 WebSocket disconnected and cleaned up');
-    }
   }
 }

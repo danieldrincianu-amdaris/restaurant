@@ -5,6 +5,9 @@ import { renderHook } from '@testing-library/react';
 import { useOrderEvents } from '../../src/hooks/useOrderEvents';
 import { SOCKET_EVENTS, Order, OrderStatus } from '@restaurant/shared';
 
+// Type for socket event handlers
+type EventHandler = (payload: unknown) => void;
+
 // Mock socket and subscription functions
 const mockSocket = {
   on: vi.fn(),
@@ -62,11 +65,11 @@ describe('useOrderEvents', () => {
 
   it('should call onCreate callback when ORDER_CREATED event received', () => {
     const onCreate = vi.fn();
-    let createdHandler: ((payload: any) => void) | undefined;
+    let createdHandler: EventHandler | undefined;
 
     mockSocket.on.mockImplementation((event, handler) => {
       if (event === SOCKET_EVENTS.ORDER_CREATED) {
-        createdHandler = handler as (payload: any) => void;
+        createdHandler = handler as EventHandler;
       }
     });
 
@@ -92,11 +95,11 @@ describe('useOrderEvents', () => {
 
   it('should call onStatusChange callback when ORDER_STATUS_CHANGED event received', () => {
     const onStatusChange = vi.fn();
-    let statusHandler: ((payload: any) => void) | undefined;
+    let statusHandler: EventHandler | undefined;
 
     mockSocket.on.mockImplementation((event, handler) => {
       if (event === SOCKET_EVENTS.ORDER_STATUS_CHANGED) {
-        statusHandler = handler as (payload: any) => void;
+        statusHandler = handler as EventHandler;
       }
     });
 
@@ -119,11 +122,11 @@ describe('useOrderEvents', () => {
 
   it('should call onDelete callback when ORDER_DELETED event received', () => {
     const onDelete = vi.fn();
-    let deleteHandler: ((payload: any) => void) | undefined;
+    let deleteHandler: EventHandler | undefined;
 
     mockSocket.on.mockImplementation((event, handler) => {
       if (event === SOCKET_EVENTS.ORDER_DELETED) {
-        deleteHandler = handler as (payload: any) => void;
+        deleteHandler = handler as EventHandler;
       }
     });
 
@@ -141,11 +144,11 @@ describe('useOrderEvents', () => {
 
   it('should call onItemAdded callback when ORDER_ITEM_ADDED event received', () => {
     const onItemAdded = vi.fn();
-    let itemAddedHandler: ((payload: any) => void) | undefined;
+    let itemAddedHandler: EventHandler | undefined;
 
     mockSocket.on.mockImplementation((event, handler) => {
       if (event === SOCKET_EVENTS.ORDER_ITEM_ADDED) {
-        itemAddedHandler = handler as (payload: any) => void;
+        itemAddedHandler = handler as EventHandler;
       }
     });
 
@@ -172,11 +175,11 @@ describe('useOrderEvents', () => {
   });
 
   it('should not call callbacks if they are not provided', () => {
-    let createdHandler: ((payload: any) => void) | undefined;
+    let createdHandler: EventHandler | undefined;
 
     mockSocket.on.mockImplementation((event, handler) => {
       if (event === SOCKET_EVENTS.ORDER_CREATED) {
-        createdHandler = handler as (payload: any) => void;
+        createdHandler = handler as EventHandler;
       }
     });
 

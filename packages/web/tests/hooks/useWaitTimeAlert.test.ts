@@ -193,18 +193,6 @@ describe('useWaitTimeAlert', () => {
       expect(clearIntervalSpy).toHaveBeenCalled();
     });
   });
-
-  describe('Status Changes', () => {
-    it.skip('should update alert level when status changes', () => {
-      // Skip: jsdom + vitest fake timers causes clearInterval issues
-      // This behavior is implicitly tested by Real-time Updates tests
-    });
-
-    it.skip('should update alert level when createdAt changes', () => {
-      // Skip: jsdom + vitest fake timers causes clearInterval issues
-      // This behavior is implicitly tested by Real-time Updates tests
-    });
-  });
 });
 
 describe('getElapsedMinutes', () => {
