@@ -49,6 +49,20 @@ h3 {
   animation: scale-in 200ms ease-out;
 }
 
+/* Print-specific styles */
+@media screen {
+  .print-only-container {
+    display: none !important;
+  }
+}
+
+@media print {
+  /* Show print container */
+  .print-only-container {
+    display: block !important;
+  }
+}
+
 /* Kitchen board animations */
 @keyframes pulse-new-order {
   0%, 100% {

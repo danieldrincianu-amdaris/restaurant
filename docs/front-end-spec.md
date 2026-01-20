@@ -523,6 +523,7 @@ Wait Time Indicators:
 - Four status columns: Pending, In Progress, Halted, Completed
 - Column headers with status color and order count
 - Order cards: order #, table #, elapsed time, items, special instructions, server
+- Print button (🖨️) on each card header for printing kitchen ticket
 - Drag-and-drop between columns
 - Wait time indicators with warning/critical colors
 - Mute toggle for notification sounds
@@ -531,6 +532,7 @@ Wait Time Indicators:
 **Interaction Notes:**
 - Drag card to new column to change status
 - Invalid transitions: card snaps back with error toast
+- Print button: opens browser print dialog with thermal receipt layout
 - New orders: audio notification + card highlight animation
 - Special instructions emphasized with different background
 - Touch-friendly: large cards, generous spacing
@@ -546,7 +548,7 @@ Wait Time Indicators:
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                                                                 │
-│   Order #127 — Table 5                              [✕ Close]   │
+│   Order #127 — Table 5                       [🖨️ Print] [✕]    │
 │                                                                 │
 │   Status: 🔵 PENDING                    Elapsed: ⏱️ 3 minutes   │
 │   Server: John                          Created: 12:31 PM       │
@@ -576,10 +578,12 @@ Wait Time Indicators:
 - Full item list with quantities
 - Special instructions highlighted per item
 - Action buttons for status transitions
+- Print ticket button (🖨️) in header
 
 **Interaction Notes:**
 - Opens as modal overlay or slide-out panel
 - Action buttons show only valid transitions
+- Print button opens browser print dialog with thermal receipt layout
 - Close via X button or tap outside
 - Keyboard: Escape to close
 
@@ -699,6 +703,53 @@ Build a minimal component library focused on the specific needs of RestaurantFlo
 - Auto-dismiss after 4 seconds
 - Stack from top-right
 - Max 3 visible at once
+
+#### 7. PrintableTicket
+
+**Purpose:** Print-optimized kitchen ticket layout for thermal receipt printers
+
+**Layout:**
+```
+┌─────────────────────────────┐
+│      RESTAURANT NAME        │
+│   ─────────────────────────  │
+│   Order #ABC123             │
+│   Table: 5                  │
+│   Server: John              │
+│   Time: 12:45 PM            │
+│   ─────────────────────────  │
+│   APPETIZERS                │
+│   2x Bruschetta       $12.00│
+│   1x Soup of Day       $8.00│
+│      → No croutons          │
+│   ─────────────────────────  │
+│   MAINS                     │
+│   1x Grilled Salmon   $24.00│
+│      → Medium rare          │
+│      → Extra lemon          │
+│   2x Pasta Primavera  $32.00│
+│   ─────────────────────────  │
+│   TOTAL:              $76.00│
+│   ─────────────────────────  │
+│         [QR CODE]           │
+│   Printed: 12:47 PM         │
+└─────────────────────────────┘
+```
+
+**Key Elements:**
+- Restaurant name header (configurable)
+- Order info: ID, Table, Server, Creation time
+- Items grouped by category
+- Special instructions highlighted with arrow/indent
+- Item prices and order total
+- QR code linking to order detail page
+- Print timestamp footer
+
+**Usage Guidelines:**
+- Optimized for 80mm thermal receipt width
+- Uses monospace font for alignment
+- Hidden from screen display, only visible during print
+- Uses @media print CSS for browser print dialog
 
 ---
 

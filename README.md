@@ -7,6 +7,7 @@ A modern, self-hosted restaurant order and menu management system built with Typ
 - **🍽️ Menu Management** - Create, edit, and organize menu items with categories and food types
 - **📋 Order Management** - Take and track customer orders with real-time updates
 - **👨‍🍳 Kitchen Display** - Real-time order queue with drag-and-drop status management
+- **🖨️ Kitchen Tickets** - Print thermal receipt-style tickets with QR codes for order tracking
 - **⚡ Real-time Updates** - WebSocket-powered live updates across all devices
 - **📱 Responsive Design** - Works seamlessly on desktop and tablet devices
 - **🌙 Dark Mode** - Full dark mode support for comfortable viewing
@@ -176,12 +177,24 @@ restaurant/
 
 ## 🔧 Environment Variables
 
+### Backend (API)
+
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `3001` | API server port |
 | `NODE_ENV` | `development` | Environment mode (development/production/test) |
 | `CORS_ORIGIN` | `http://localhost:5173` | Allowed CORS origin for frontend |
 | `DATABASE_URL` | `postgresql://restaurant:restaurant_dev@localhost:5432/restaurant` | PostgreSQL connection string |
+
+### Frontend (Web)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `VITE_API_URL` | `http://localhost:3001/api` | Backend API URL |
+| `VITE_RESTAURANT_NAME` | `RestaurantFlow` | Restaurant name for printed kitchen tickets |
+| `VITE_PENDING_WARNING_MINUTES` | `10` | Minutes before pending orders show warning |
+| `VITE_PENDING_CRITICAL_MINUTES` | `20` | Minutes before pending orders show critical alert |
+| `VITE_IN_PROGRESS_WARNING_MINUTES` | `30` | Minutes before in-progress orders show warning |
 
 See [`.env.example`](./.env.example) for complete documentation.
 

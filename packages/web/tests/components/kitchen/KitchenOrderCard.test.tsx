@@ -155,7 +155,7 @@ describe('KitchenOrderCard', () => {
       />
     );
 
-    const card = screen.getByRole('button');
+    const card = screen.getByLabelText('Order def456 for table 5');
     fireEvent.click(card);
 
     expect(handleClick).toHaveBeenCalledTimes(1);
@@ -171,7 +171,7 @@ describe('KitchenOrderCard', () => {
       />
     );
 
-    const card = screen.getByRole('button');
+    const card = screen.getByLabelText('Order def456 for table 5');
     fireEvent.keyDown(card, { key: 'Enter' });
 
     expect(handleClick).toHaveBeenCalledTimes(1);
@@ -187,7 +187,7 @@ describe('KitchenOrderCard', () => {
       />
     );
 
-    const card = screen.getByRole('button');
+    const card = screen.getByLabelText('Order def456 for table 5');
     fireEvent.keyDown(card, { key: ' ' });
 
     expect(handleClick).toHaveBeenCalledTimes(1);
@@ -196,7 +196,7 @@ describe('KitchenOrderCard', () => {
   it('has proper accessibility attributes', () => {
     render(<KitchenOrderCard order={mockOrder} status={OrderStatus.PENDING} />);
 
-    const card = screen.getByRole('button');
+    const card = screen.getByLabelText('Order def456 for table 5');
     expect(card).toHaveAttribute('aria-label', 'Order def456 for table 5');
     expect(card).toHaveAttribute('tabIndex', '0');
   });

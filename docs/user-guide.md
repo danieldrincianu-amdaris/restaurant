@@ -16,6 +16,7 @@ Welcome to RestaurantFlow — a modern restaurant order management system design
 4. [Kitchen Display](#kitchen-display)
    - [Order Queue](#order-queue)
    - [Drag-and-Drop Status Updates](#drag-and-drop-status-updates)
+   - [Printing Kitchen Tickets](#printing-kitchen-tickets)
    - [Wait Time Alerts](#wait-time-alerts)
    - [Bulk Actions](#bulk-actions)
 5. [Menu Management (Admin)](#menu-management-admin)
@@ -189,6 +190,55 @@ Valid status transitions:
 - **Halted** → **In Progress** (resume order)
 
 > **Keyboard Users:** Select an order card with Tab, press Enter or Space to pick it up, use arrow keys to move, and press Enter or Space to drop.
+
+### Printing Kitchen Tickets
+
+Each order card includes a printer icon button that allows you to print a physical kitchen ticket.
+
+#### How to Print a Ticket
+
+1. Locate the order card you want to print
+2. Click the **🖨️ printer icon** in the top-right corner of the card
+3. Your browser's print dialog will open
+4. Select your printer (thermal or standard)
+5. Click **Print**
+
+#### Ticket Content
+
+The printed ticket includes:
+- **Restaurant Name** (configurable in settings)
+- **Order ID** (short format, last 6 characters)
+- **Table Number**
+- **Server Name**
+- **Order Time**
+- **Items grouped by category** (Appetizers, Mains, Drinks, Desserts)
+- **Item quantities and prices**
+- **Special instructions** (highlighted with arrow indicator)
+- **Order Total**
+- **QR Code** (scan to view order details)
+- **Print timestamp**
+
+#### Printer Recommendations
+
+**Thermal Printers (Recommended):**
+- The ticket is optimized for 80mm thermal receipt printers
+- No ink or toner required
+- Fast printing
+- Common models: Star TSP100, Epson TM-T20, Bixolon SRP-350
+
+**Standard Printers:**
+- Can also print on standard letter/A4 paper
+- May require manual paper trimming
+- Recommended: Print in portrait mode
+
+#### Reprint Capability
+
+You can print tickets multiple times without any restrictions:
+- Print during order creation for immediate kitchen reference
+- Print again if the original ticket is lost or damaged
+- Print for multiple kitchen stations
+
+> **Tip:** Configure your restaurant name by setting the `VITE_RESTAURANT_NAME` environment variable before starting the application.
 
 ### Wait Time Alerts
 

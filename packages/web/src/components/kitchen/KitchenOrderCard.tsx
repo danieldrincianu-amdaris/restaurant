@@ -1,8 +1,10 @@
 import { Order, OrderStatus } from '@restaurant/shared';
 import { memo } from 'react';
+import { Printer } from 'lucide-react';
 import { useElapsedTime } from '../../lib/timeUtils';
 import { useWaitTimeAlert, type AlertLevel } from '../../hooks/useWaitTimeAlert';
 import { getWaitTimeThresholds } from '../../config/waitTimeThresholds';
+import { usePrintTicket } from '../../hooks/usePrintTicket';
 import OrderItemsList from './OrderItemsList';
 
 interface KitchenOrderCardProps {
@@ -80,6 +82,7 @@ function KitchenOrderCard({ order, status, onClick, isSelected = false, onSelect
   const thresholds = getWaitTimeThresholds();
   const alertLevel = useWaitTimeAlert(order.createdAt, status, thresholds);
   const hasSpecialInstructions = order.items.some(item => item.specialInstructions);
+  const { printTicket, isPrinting } = usePrintTicket();
   
   const borderColor = getAlertBorderColor(status, alertLevel);
   const alertTooltip = getAlertTooltip(status, alertLevel, Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000));
@@ -93,6 +96,11 @@ function KitchenOrderCard({ order, status, onClick, isSelected = false, onSelect
     if (!showCheckbox) {
       onClick?.();
     }
+  };
+
+  const handlePrintClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+    printTicket(order);
   };
 
   return (
@@ -128,9 +136,20 @@ function KitchenOrderCard({ order, status, onClick, isSelected = false, onSelect
               #{order.id.slice(-6)}
             </span>
           </div>
-          <span className="text-sm text-gray-600 dark:text-gray-300">
-            Table {order.tableNumber}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600 dark:text-gray-300">
+              Table {order.tableNumber}
+            </span>
+            <button
+              onClick={handlePrintClick}
+              disabled={isPrinting}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors disabled:opacity-50"
+              title="Print Ticket"
+              aria-label="Print kitchen ticket"
+            >
+              <Printer size={16} className="text-gray-600 dark:text-gray-400" />
+            </button>
+          </div>
         </div>
         
         <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">

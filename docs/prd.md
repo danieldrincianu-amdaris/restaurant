@@ -209,7 +209,7 @@ restaurant-flow/
 | **Epic 1** | Foundation & Menu Management | Establish project infrastructure, database schema, and deliver complete menu management functionality for Admin users |
 | **Epic 2** | Order Management | Enable Restaurant Staff to create, edit, and manage orders with full menu integration |
 | **Epic 3** | Kitchen Display & Real-time | Deliver real-time kitchen display with drag-and-drop status management and notifications |
-| **Epic 4** | Enhancements & Polish | Improve performance, UX, accessibility, testing infrastructure, and developer experience |
+| **Epic 4** | Enhancements & Polish | Improve performance, UX, accessibility, testing infrastructure, developer experience, and add operational features like order deletion and kitchen ticket printing |
 
 ---
 
@@ -742,7 +742,7 @@ Deliver a real-time kitchen display system with drag-and-drop status management,
 
 ### Epic Goal
 
-Improve the overall quality, performance, and developer experience of RestaurantFlow. This epic addresses technical debt, enhances accessibility, establishes comprehensive testing infrastructure, and adds quality-of-life features for both users and developers. By the end of this epic, the application will be production-ready with robust testing, documentation, and optimized performance.
+Improve the overall quality, performance, and developer experience of RestaurantFlow. This epic addresses technical debt, enhances accessibility, establishes comprehensive testing infrastructure, adds quality-of-life features for both users and developers, and introduces operational capabilities like order deletion and kitchen ticket printing. By the end of this epic, the application will be production-ready with robust testing, documentation, optimized performance, and practical kitchen workflow tools.
 
 ### Stories
 
@@ -847,6 +847,44 @@ Improve the overall quality, performance, and developer experience of Restaurant
 5. Hot module replacement (HMR) working for all packages
 6. Git hooks configured for pre-commit linting and testing
 7. README updated with architecture overview and quick start guide
+
+---
+
+#### Story 4.7: Order Deletion
+
+**As a** Restaurant Staff user,  
+**I want** the ability to delete orders from the system,  
+**so that** I can remove cancelled, mistaken, or test orders that are no longer needed.
+
+**Acceptance Criteria:**
+1. Delete button visible on order detail/edit page for PENDING and CANCELED orders only
+2. Delete action requires confirmation dialog with order summary
+3. Successful deletion redirects to orders list with success toast notification
+4. `DELETE /api/orders/:id` endpoint removes order and all associated order items
+5. `order:deleted` WebSocket event broadcasts to update all connected clients
+6. Cannot delete IN_PROGRESS or COMPLETED orders (button disabled/hidden with tooltip)
+7. Deletion is permanent - no soft delete or undo functionality required
+8. Orders list updates in real-time when another user deletes an order
+
+---
+
+#### Story 4.8: Print Kitchen Tickets
+
+**As a** Kitchen Staff user,  
+**I want** to print kitchen tickets for orders from the Kitchen Display,  
+**so that** I have a physical reference during food preparation and can track orders without relying solely on the screen.
+
+**Acceptance Criteria:**
+1. Print button visible on each KitchenOrderCard (printer icon)
+2. Print button also available in order detail/expanded view
+3. Clicking print opens browser print dialog with thermal-receipt-style layout (80mm width)
+4. Printed ticket includes: Order ID, Table Number, Server Name, Order Time, Items grouped by category
+5. Each item shows: quantity, name, and special instructions (highlighted)
+6. Ticket includes item prices and order total at bottom
+7. QR code on ticket links to order detail page for quick lookup
+8. Print-specific CSS ensures clean output (no UI chrome, optimized for thermal printers)
+9. Ticket header shows restaurant name (configurable) and print timestamp
+10. Multiple tickets can be printed in sequence without page refresh
 
 ---
 

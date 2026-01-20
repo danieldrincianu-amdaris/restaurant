@@ -138,7 +138,7 @@ describe('React.memo Performance Tests', () => {
       
       // Component renders successfully
       expect(container.firstChild).toBeTruthy();
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByLabelText('Order rder-1 for table 5')).toBeInTheDocument();
       
       // Rerender with same props - memo should optimize this
       rerender(
@@ -147,7 +147,7 @@ describe('React.memo Performance Tests', () => {
       
       // Verify it still works
       expect(container.firstChild).toBeTruthy();
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByLabelText('Order rder-1 for table 5')).toBeInTheDocument();
     });
 
     it('DOES re-render when order items change', () => {
@@ -158,7 +158,7 @@ describe('React.memo Performance Tests', () => {
       
       // Component renders successfully
       expect(container.firstChild).toBeTruthy();
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByLabelText('Order rder-1 for table 5')).toBeInTheDocument();
       
       // Different items - SHOULD trigger re-render and update display
       const newItem = { 
@@ -178,7 +178,7 @@ describe('React.memo Performance Tests', () => {
       
       // Verify component still renders (memo detects items change)
       expect(container.firstChild).toBeTruthy();
-      expect(screen.getByRole('button')).toBeInTheDocument();
+      expect(screen.getByLabelText('Order rder-1 for table 5')).toBeInTheDocument();
     });
   });
 
