@@ -15,6 +15,8 @@ function OrderBuilder() {
     orderId,
     isEditMode,
     originalItems,
+    originalTableNumber,
+    originalServerName,
     setTableNumber,
     setServerName,
     clearOrder,
@@ -39,6 +41,11 @@ function OrderBuilder() {
   const hasChanges = useMemo(() => {
     if (!isEditMode) return false;
 
+    // Check if table number or server name have changed
+    if (tableNumber !== originalTableNumber || serverName !== originalServerName) {
+      return true;
+    }
+
     // Check if items have changed
     if (items.length !== originalItems.length) return true;
 
@@ -51,7 +58,7 @@ function OrderBuilder() {
         original.specialInstructions !== item.specialInstructions
       );
     });
-  }, [isEditMode, items, originalItems]);
+  }, [isEditMode, items, originalItems, tableNumber, originalTableNumber, serverName, originalServerName]);
 
   const handleSubmit = async () => {
     if (!canSubmit) return;

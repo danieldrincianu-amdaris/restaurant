@@ -16,6 +16,8 @@ interface OrderContextState {
   orderId: string | null;
   isEditMode: boolean;
   originalItems: OrderItem[];
+  originalTableNumber: number | null;
+  originalServerName: string;
 }
 
 interface OrderContextActions {
@@ -43,6 +45,8 @@ export function OrderProvider({ children }: OrderProviderProps) {
   const [serverName, setServerName] = useState<string>('');
   const [orderId, setOrderId] = useState<string | null>(null);
   const [originalItems, setOriginalItems] = useState<OrderItem[]>([]);
+  const [originalTableNumber, setOriginalTableNumber] = useState<number | null>(null);
+  const [originalServerName, setOriginalServerName] = useState<string>('');
 
   const addItem = (item: MenuItem) => {
     setItems((prevItems) => {
@@ -103,12 +107,16 @@ export function OrderProvider({ children }: OrderProviderProps) {
     setServerName('');
     setOrderId(null);
     setOriginalItems([]);
+    setOriginalTableNumber(null);
+    setOriginalServerName('');
   };
 
   const loadExistingOrder = (order: Order) => {
     setOrderId(order.id);
     setTableNumber(order.tableNumber);
     setServerName(order.serverName);
+    setOriginalTableNumber(order.tableNumber);
+    setOriginalServerName(order.serverName);
 
     // Convert Order items to OrderContext items
     const contextItems: OrderItem[] = order.items.map((item) => ({
@@ -132,6 +140,8 @@ export function OrderProvider({ children }: OrderProviderProps) {
     orderId,
     isEditMode,
     originalItems,
+    originalTableNumber,
+    originalServerName,
     addItem,
     removeItem,
     updateQuantity,

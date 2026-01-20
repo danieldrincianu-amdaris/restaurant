@@ -1,10 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import { RouterProvider, createMemoryRouter, Navigate } from 'react-router-dom';
 import { ToastProvider } from '../src/contexts/ToastContext';
 import MainLayout from '../src/components/layout/MainLayout';
 import HomePage from '../src/pages/HomePage';
-import AdminDashboard from '../src/pages/admin/AdminDashboard';
 import MenuManagement from '../src/pages/admin/MenuManagement';
 
 // Mock the hooks for MenuManagement
@@ -54,14 +53,15 @@ describe('Router', () => {
     expect(screen.getByText(/Welcome to RestaurantFlow/i)).toBeInTheDocument();
   });
 
-  it('renders AdminDashboard at /admin route', () => {
+  it('redirects /admin to /admin/menu route', () => {
     const router = createMemoryRouter(
       [
         {
           path: '/',
           element: <MainLayout />,
           children: [
-            { path: 'admin', element: <AdminDashboard /> },
+            { path: 'admin', element: <Navigate to="/admin/menu" replace /> },
+            { path: 'admin/menu', element: <ToastProvider><MenuManagement /></ToastProvider> },
           ],
         },
       ],
@@ -71,7 +71,7 @@ describe('Router', () => {
     );
 
     render(<RouterProvider router={router as any} />);
-    expect(screen.getByText(/Admin Dashboard/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Menu Management', level: 1 })).toBeInTheDocument();
   });
 
   it('renders MenuManagement at /admin/menu route', () => {
